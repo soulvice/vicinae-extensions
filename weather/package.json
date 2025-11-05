@@ -1,0 +1,100 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "weather",
+  "title": "Weather Forecast",
+  "description": "View current weather and forecasts using wttr.in",
+  "icon": "icon.png",
+  "author": "soulvice",
+  "license": "MIT",
+  "categories": [
+    "Productivity",
+    "Other"
+  ],
+  "commands": [
+    {
+      "name": "current-weather",
+      "title": "Current Weather",
+      "description": "View current weather conditions",
+      "mode": "view"
+    },
+    {
+      "name": "forecast",
+      "title": "Weather Forecast",
+      "description": "View multi-day weather forecast",
+      "mode": "view"
+    },
+    {
+      "name": "quick-weather",
+      "title": "Quick Weather",
+      "description": "Quick weather summary",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "location",
+      "title": "Location",
+      "description": "Your location (city name, coordinates, or leave empty for auto-detect)",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    },
+    {
+      "name": "units",
+      "title": "Units",
+      "description": "Temperature units",
+      "type": "dropdown",
+      "required": false,
+      "default": "metric",
+      "data": [
+        {
+          "title": "Metric (°C)",
+          "value": "metric"
+        },
+        {
+          "title": "Imperial (°F)",
+          "value": "imperial"
+        }
+      ]
+    },
+    {
+      "name": "forecastDays",
+      "title": "Forecast Days",
+      "description": "Number of days to show in forecast (1-10)",
+      "type": "dropdown",
+      "required": false,
+      "default": "5",
+      "data": [
+        {
+          "title": "3 days",
+          "value": "3"
+        },
+        {
+          "title": "5 days",
+          "value": "5"
+        },
+        {
+          "title": "7 days",
+          "value": "7"
+        },
+        {
+          "title": "10 days",
+          "value": "10"
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "@vicinae/api": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici dev",
+    "lint": "vici lint"
+  }
+}

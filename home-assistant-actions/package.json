@@ -1,0 +1,102 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "home-assistant-actions",
+  "title": "Home Assistant Actions",
+  "description": "Control Home Assistant devices and execute service calls",
+  "icon": "extension_icon.png",
+  "author": "soulvice",
+  "license": "MIT",
+  "categories": [
+    "System",
+    "Productivity",
+    "Developer Tools"
+  ],
+  "commands": [
+    {
+      "name": "list-entities",
+      "title": "List Entities",
+      "description": "View and control all Home Assistant entities",
+      "mode": "view"
+    },
+    {
+      "name": "list-lights",
+      "title": "Control Lights",
+      "description": "Quick control for lights",
+      "mode": "view"
+    },
+    {
+      "name": "list-switches",
+      "title": "Control Switches",
+      "description": "Quick control for switches and plugs",
+      "mode": "view"
+    },
+    {
+      "name": "scenes",
+      "title": "Activate Scenes",
+      "description": "Activate Home Assistant scenes",
+      "mode": "view"
+    },
+    {
+      "name": "scripts",
+      "title": "Run Scripts",
+      "description": "Execute Home Assistant scripts",
+      "mode": "view"
+    },
+    {
+      "name": "quick-actions",
+      "title": "Quick Actions",
+      "description": "Common Home Assistant actions",
+      "mode": "view"
+    },
+    {
+      "name": "dashboard",
+      "title": "Dashboard",
+      "description": "Grid view of favorite entities",
+      "mode": "view"
+    },
+    {
+      "name": "climate",
+      "title": "Climate Control",
+      "description": "Control thermostats and HVAC systems",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "haUrl",
+      "title": "Home Assistant URL",
+      "description": "Your Home Assistant instance URL (e.g., http://homeassistant.local:8123)",
+      "type": "textfield",
+      "required": true
+    },
+    {
+      "name": "haToken",
+      "title": "Access Token",
+      "description": "Long-lived access token from Home Assistant",
+      "type": "password",
+      "required": true
+    },
+    {
+      "name": "favoriteEntities",
+      "title": "Favorite Entities",
+      "description": "Comma-separated list of entity IDs to show in dashboard (e.g., light.living_room,switch.coffee_maker,sensor.temperature)",
+      "type": "textfield",
+      "required": false,
+      "default": ""
+    }
+  ],
+  "dependencies": {
+    "@vicinae/api": "latest",
+    "node-fetch": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici dev",
+    "lint": "vici lint"
+  }
+}
