@@ -86,13 +86,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: '${{ matrix.project }}/package-lock.json'
-
       - name: Check if project has package.json
         id: check-package
         run: |
@@ -102,6 +95,14 @@ jobs:
             echo "has-package=false" >> $GITHUB_OUTPUT
             echo "⚠️ No package.json found in ${{ matrix.project }}"
           fi
+
+      - name: Setup Node.js
+        if: steps.check-package.outputs.has-package == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: '${{ matrix.project }}/package-lock.json'
 
       - name: Install dependencies
         if: steps.check-package.outputs.has-package == 'true'
