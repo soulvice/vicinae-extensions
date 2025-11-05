@@ -3,7 +3,7 @@
   "name": "weather",
   "title": "Weather Forecast",
   "description": "View current weather and forecasts using wttr.in",
-  "icon": "icon.png",
+  "icon": "extension_icon.png",
   "author": "soulvice",
   "license": "MIT",
   "categories": [
