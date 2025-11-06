@@ -1,30 +1,35 @@
-import { showToast, Toast, closeMainWindow } from "@vicinae/api";
+import { showToast, Toast } from "@vicinae/api";
+import { Bitwarden } from "~/api/bitwarden";
+import { VAULT_LOCK_MESSAGES } from "~/constants/general";
+import { SessionStorage } from "~/context/session/utils";
 
-export default async function LockVault() {
+async function lockVaultCommand() {
+  const toast = await showToast(Toast.Style.Animated, "Locking vault...", "Please wait");
   try {
-    await closeMainWindow();
+    const [token] = await SessionStorage.getSavedSession();
+    if (!token) {
+      toast.style = Toast.Style.Failure;
+      toast.title = "No session found";
+      toast.message = "Already locked or not logged in";
+      return;
+    }
 
-    await showToast({
-      style: Toast.Style.Animated,
-      title: "Locking vault...",
-      message: "Clearing session data"
-    });
+    const bitwarden = await new Bitwarden(toast).initialize();
 
-    // Clear any cached authentication data
-    // Note: In a real implementation, you might want to clear stored tokens
-    // For now, we'll just notify the user that the vault is locked
-
-    await showToast({
-      style: Toast.Style.Success,
-      title: "Vault locked",
-      message: "Session cleared. You'll need to authenticate again."
-    });
-
+    await bitwarden.withSession(token).lock({ reason: VAULT_LOCK_MESSAGES.MANUAL });
   } catch (error) {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Failed to lock vault",
-      message: error instanceof Error ? error.message : "Unknown error"
-    });
+    await showToast(Toast.Style.Failure, "Failed to lock vault");
+  }
+
+  try {
+    await SessionStorage.clearSession();
+
+    toast.style = Toast.Style.Success;
+    toast.title = "Vault successfully locked";
+    toast.message = undefined;
+  } catch (error) {
+    await showToast(Toast.Style.Failure, "Failed to lock vault");
   }
 }
+
+export default lockVaultCommand;

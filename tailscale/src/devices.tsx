@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ActionPanel, Action, List, showToast, Toast, getPreferenceValues } from "@vicinae/api";
 import { exec } from "child_process";
 import { promisify } from "util";

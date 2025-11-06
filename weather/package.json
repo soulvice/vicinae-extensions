@@ -1,93 +1,104 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "weather",
-  "title": "Weather Forecast",
-  "description": "View current weather and forecasts using wttr.in",
-  "icon": "extension_icon.png",
-  "author": "soulvice",
-  "license": "MIT",
-  "categories": [
-    "Productivity",
-    "Other"
+  "title": "Weather",
+  "version": "0.3.0",
+  "description": "Weather forecast via wttr.in",
+  "icon": "weather.png",
+  "author": "tonka3000",
+  "contributors": [
+    "xilopaint"
   ],
+  "license": "MIT",
   "commands": [
     {
-      "name": "current-weather",
-      "title": "Current Weather",
-      "description": "View current weather conditions",
+      "name": "index",
+      "title": "Weather",
+      "description": "Weather forecast via wttr.in",
       "mode": "view"
     },
     {
-      "name": "forecast",
-      "title": "Weather Forecast",
-      "description": "View multi-day weather forecast",
-      "mode": "view"
-    },
-    {
-      "name": "quick-weather",
-      "title": "Quick Weather",
-      "description": "Quick weather summary",
-      "mode": "view"
+      "name": "menubar",
+      "title": "Weather Menu Bar",
+      "description": "Show weather in menu bar",
+      "mode": "menu-bar",
+      "interval": "30m",
+      "preferences": [
+        {
+          "name": "showmenuicon",
+          "description": "Show Icon",
+          "type": "checkbox",
+          "required": false,
+          "title": "Appearance",
+          "label": "Show Icon",
+          "default": true
+        },
+        {
+          "name": "showmenutext",
+          "description": "Show Text",
+          "type": "checkbox",
+          "required": false,
+          "label": "Show Text",
+          "default": true
+        }
+      ]
     }
   ],
   "preferences": [
     {
-      "name": "location",
-      "title": "Location",
-      "description": "Your location (city name, coordinates, or leave empty for auto-detect)",
-      "type": "textfield",
-      "required": false,
-      "default": ""
-    },
-    {
-      "name": "units",
-      "title": "Units",
-      "description": "Temperature units",
+      "name": "unitsystem",
       "type": "dropdown",
+      "title": "Unit System",
       "required": false,
       "default": "metric",
+      "description": "Unit System",
       "data": [
         {
-          "title": "Metric (°C)",
+          "title": "Metric System",
           "value": "metric"
         },
         {
-          "title": "Imperial (°F)",
+          "title": "Imperial Units",
           "value": "imperial"
         }
       ]
     },
     {
-      "name": "forecastDays",
-      "title": "Forecast Days",
-      "description": "Number of days to show in forecast (1-10)",
-      "type": "dropdown",
+      "name": "defaultquery",
+      "type": "textfield",
+      "title": "Default query",
+      "placeholder": "Empty or location (e.g. London)",
       "required": false,
-      "default": "5",
+      "default": "",
+      "description": "Default query when search bar is empty. Same content as in the search bar."
+    },
+    {
+      "name": "clockformat",
+      "description": "Clock Format",
+      "type": "dropdown",
+      "title": "Clock Format",
+      "default": "12h",
+      "required": false,
       "data": [
         {
-          "title": "3 days",
-          "value": "3"
+          "title": "12 Hours",
+          "value": "12h"
         },
         {
-          "title": "5 days",
-          "value": "5"
-        },
-        {
-          "title": "7 days",
-          "value": "7"
-        },
-        {
-          "title": "10 days",
-          "value": "10"
+          "title": "24 Hours",
+          "value": "24h"
         }
       ]
     }
   ],
   "dependencies": {
-    "@vicinae/api": "latest"
+    "@vicinae/api": "latest",
+    "cross-fetch": "^4.0.0",
+    "javascript-time-ago": "^2.5.9",
+    "moment": "^2.29.1"
   },
   "devDependencies": {
+    "@types/moment": "^2.13.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
     "typescript": "^5.0.0"
