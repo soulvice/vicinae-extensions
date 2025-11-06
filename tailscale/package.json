@@ -12,6 +12,12 @@
   ],
   "commands": [
     {
+      "name": "devices",
+      "title": "All Devices",
+      "description": "List all devices in your Tailnet",
+      "mode": "view"
+    },
+    {
       "name": "status",
       "title": "Tailscale Status",
       "description": "View current Tailscale connection status and information",
