@@ -13,7 +13,7 @@
   "commands": [
     {
       "name": "devices",
-      "title": "All Devices",
+      "title": "Tailscale Devices",
       "description": "List all devices in your Tailnet",
       "mode": "view"
     },

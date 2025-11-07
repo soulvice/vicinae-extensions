@@ -92,39 +92,48 @@ export default function Command() {
   };
 
   const buildMarkdown = () => {
+    const locationStatus = preferences.location ? "📍 Manual" : "🌐 Auto-detect";
+    const cacheStatus = preferences.enableCaching ? (cacheInfo.exists ? "🟢 Active" : "🟡 Enabled") : "🔴 Disabled";
+
     return `
-# ⚙️ Weather Settings
+# ⚙️ Weather Extension Settings
 
-## 📍 Location Configuration
+---
 
-| Setting | Value |
-|---------|-------|
-| **Location** | ${preferences.location || "*Auto-detect*"} |
-| **Discovery Mode** | ${preferences.discoveryMode === "auto" ? "🔄 Automatic" : "📝 Manual"} |
-${preferences.discoveryMode === "auto" ? `| **Auto-detected** | ${autoLocation} |` : ""}
+### 📍 LOCATION CONFIGURATION
 
-## 🎛️ Display Preferences
+| Setting | Current Value | Status |
+|---------|:-------------:|:------:|
+| **Location Source** | ${preferences.location || "*Auto-detect*"} | ${locationStatus} |
+| **Discovery Mode** | ${preferences.discoveryMode === "auto" ? "Automatic" : "Manual"} | ${preferences.discoveryMode === "auto" ? "🔄" : "📝"} |
+${preferences.discoveryMode === "auto" ? `| **Detected Location** | ${autoLocation} | ${autoLocation !== "Unable to detect" ? "🟢" : "🔴"} |` : ""}
 
-| Setting | Value |
-|---------|-------|
-| **Temperature Units** | ${preferences.units === "metric" ? "🌡️ Metric (°C)" : "🌡️ Imperial (°F)"} |
-| **Forecast Days** | ${preferences.forecastDays} days |
+---
 
-## 💾 Cache Configuration
+### 🎛️ DISPLAY PREFERENCES
 
-| Setting | Value |
-|---------|-------|
-| **Caching Enabled** | ${preferences.enableCaching ? "✅ Yes" : "❌ No"} |
-| **Cache Timeout** | ${preferences.cacheTimeout} minutes |
+| Setting | Value | Unit |
+|---------|:-----:|:----:|
+| **Temperature** | ${preferences.units === "metric" ? "Celsius" : "Fahrenheit"} | ${preferences.units === "metric" ? "°C" : "°F"} |
+| **Forecast Period** | ${preferences.forecastDays} days | 📅 |
 
-${preferences.enableCaching ? `
-### Cache Status
-| Info | Value |
-|------|-------|
-| **Cache File Exists** | ${cacheInfo.exists ? "✅ Yes" : "❌ No"} |
-${cacheInfo.exists ? `| **File Size** | ${cacheInfo.size || "Unknown"} |` : ""}
-${cacheInfo.entries ? `| **Cached Locations** | ${cacheInfo.entries} |` : ""}
-${cacheInfo.lastModified ? `| **Last Modified** | ${cacheInfo.lastModified} |` : ""}
+---
+
+### 💾 CACHE SYSTEM
+
+| Component | Status | Details |
+|-----------|:------:|:-------:|
+| **Cache Service** | ${preferences.enableCaching ? "Enabled" : "Disabled"} | ${cacheStatus} |
+| **Timeout Duration** | ${preferences.cacheTimeout} minutes | ⏱️ |
+${preferences.enableCaching ? `| **Storage** | ${cacheInfo.exists ? "Active" : "Empty"} | ${cacheInfo.exists ? "💾" : "📂"} |` : ""}
+
+${preferences.enableCaching && cacheInfo.exists ? `
+#### Cache Details
+| Metric | Value |
+|--------|-------|
+| **File Size** | ${cacheInfo.size || "Unknown"} |
+| **Cached Entries** | ${cacheInfo.entries || "0"} locations |
+| **Last Updated** | ${cacheInfo.lastModified || "Unknown"} |
 ` : ""}
 
 ---

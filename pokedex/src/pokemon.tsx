@@ -140,47 +140,57 @@ export default function Command({ pokemonId = "1" }: PokemonDetailProps) {
     const spriteUrl = pokeAPI.getPokemonSpriteUrl(pokemon);
     const shinySpriteUrl = pokeAPI.getPokemonSpriteUrl(pokemon, true);
 
-    // Split view: Image on left, stats on right
+    // Create a Raycast-inspired layout with structured metadata
     let markdown = `
 # ${formatPokemonName(pokemon.name)}
 ## Pokédex #${pokemon.id.toString().padStart(3, "0")}
 
-<div style="display: flex; gap: 20px;">
+| | |
+|:---:|:---|
+| ![${pokemon.name}](${spriteUrl}) | **📋 BASIC INFORMATION**<br/><br/>**Height:** ${formatHeight(pokemon.height)}<br/>**Weight:** ${formatWeight(pokemon.weight)}<br/>**Base Experience:** ${pokemon.base_experience || "Unknown"} XP<br/><br/>**🔗 CLASSIFICATION**<br/>**Generation:** ${pokemon.pokemon_v2_pokemonspecy?.pokemon_v2_generation?.name?.replace('generation-', 'Gen ').toUpperCase() || 'Unknown'}<br/>**Species Color:** ${pokemon.pokemon_v2_pokemonspecy?.pokemon_v2_pokemoncolor?.name?.toUpperCase() || 'Unknown'}<br/><br/>**📖 POKÉDEX ENTRY**<br/>${flavorText} |
 
-<!-- LEFT SIDE: IMAGE -->
-<div style="flex: 1; text-align: center;">
+---
 
-![${pokemon.name}](${spriteUrl})
+## 🏷️ TYPE CLASSIFICATION
+
+${typeString}
 
 ${preferences.showShinySprites ? `
-### ✨ Shiny Form
-![Shiny ${pokemon.name}](${shinySpriteUrl})
+---
+
+## ✨ ALTERNATE FORMS
+
+| Regular | Shiny |
+|:---:|:---:|
+| ![${pokemon.name}](${spriteUrl}) | ![Shiny ${pokemon.name}](${shinySpriteUrl}) |
+
 ` : ""}
 
-### ${typeString}
+---
 
-> ${flavorText}
+## 📊 BASE STATS
 
-</div>
+| Stat | Value | Distribution | Rating |
+|------|:-----:|:------------:|:------:|`;
 
-<!-- RIGHT SIDE: STATS -->
-<div style="flex: 1;">
-
-## 📊 Base Stats
-
-| Stat | Value | Bar |
-|------|-------|-----|`;
-
-    // Add base stats
+    // Add base stats with better visualization
     pokemon.pokemon_v2_pokemonstats.forEach(stat => {
       const statName = getStatName(stat.pokemon_v2_stat.name);
       const value = stat.base_stat;
       const percentage = Math.round((value / 255) * 100);
-      const barFill = "█".repeat(Math.floor(percentage / 5));
-      const barEmpty = "░".repeat(20 - Math.floor(percentage / 5));
+      // Create a more visual representation
+      const bars = Math.floor(percentage / 5);
+      const barDisplay = "█".repeat(bars) + "░".repeat(20 - bars);
+
+      // Add color context based on stat quality
+      let quality = "";
+      if (percentage >= 80) quality = "🔥 Elite";
+      else if (percentage >= 65) quality = "💪 Strong";
+      else if (percentage >= 45) quality = "👍 Average";
+      else quality = "📉 Weak";
 
       markdown += `
-| **${statName}** | ${value} | \`${barFill}${barEmpty}\` ${percentage}% |`;
+| **${statName}** | **${value}** | \`${barDisplay}\` ${percentage}% ${quality} |`;
     });
 
     const totalStats = pokemon.pokemon_v2_pokemonstats.reduce((sum, stat) => sum + stat.base_stat, 0);
@@ -188,77 +198,72 @@ ${preferences.showShinySprites ? `
     markdown += `
 | **TOTAL** | **${totalStats}** | |
 
-## 📏 Physical
-
-| Attribute | Value |
-|-----------|-------|
-| **Height** | ${formatHeight(pokemon.height)} |
-| **Weight** | ${formatWeight(pokemon.weight)} |
-| **Base Experience** | ${pokemon.base_experience || "Unknown"} XP |
-
-## 🎯 Abilities
+## 🎯 ABILITIES
 
 `;
 
-    // Add abilities
-    pokemon.pokemon_v2_pokemonabilities.forEach(ability => {
-      const abilityName = formatPokemonName(ability.pokemon_v2_ability.name);
-      const isHidden = ability.is_hidden ? " *(Hidden)*" : "";
-      const effect = ability.pokemon_v2_ability.pokemon_v2_abilityeffecttexts?.[0]?.short_effect || "No description available.";
+    // Add abilities in a more structured format
+    const normalAbilities = pokemon.pokemon_v2_pokemonabilities.filter(a => !a.is_hidden);
+    const hiddenAbilities = pokemon.pokemon_v2_pokemonabilities.filter(a => a.is_hidden);
 
-      markdown += `
-**${abilityName}**${isHidden}
-${effect}
+    if (normalAbilities.length > 0) {
+      markdown += `**Normal Abilities:**\n`;
+      normalAbilities.forEach((ability, index) => {
+        const abilityName = formatPokemonName(ability.pokemon_v2_ability.name);
+        markdown += `${index + 1}. **${abilityName}**\n`;
+      });
+      markdown += `\n`;
+    }
 
-`;
-    });
+    if (hiddenAbilities.length > 0) {
+      markdown += `**Hidden Abilities:**\n`;
+      hiddenAbilities.forEach((ability) => {
+        const abilityName = formatPokemonName(ability.pokemon_v2_ability.name);
+        markdown += `🔒 **${abilityName}** *(Hidden)*\n`;
+      });
+      markdown += `\n`;
+    }
 
     markdown += `
-</div>
-</div>
-
 ---
 
 `;
 
-    // Type effectiveness section
+    // Type effectiveness section with better organization
     if (typeEffectiveness) {
       markdown += `
-## ⚔️ Type Effectiveness
+## ⚔️ BATTLE EFFECTIVENESS
 
-`;
+| Interaction | Types | Damage Multiplier |
+|-------------|-------|:----------------:|`;
 
       if (typeEffectiveness.weaknesses.length > 0) {
+        const weaknessTypes = typeEffectiveness.weaknesses.map(type => `${getTypeEmoji(type)} ${type}`).join(", ");
         markdown += `
-**Weak to** (2x damage):
-${typeEffectiveness.weaknesses.map(type => `${getTypeEmoji(type)} ${type}`).join(", ")}
-
-`;
+| **🔴 Weak To** | ${weaknessTypes} | **2.0x** |`;
       }
 
       if (typeEffectiveness.resistances.length > 0) {
+        const resistanceTypes = typeEffectiveness.resistances.map(type => `${getTypeEmoji(type)} ${type}`).join(", ");
         markdown += `
-**Resists** (0.5x damage):
-${typeEffectiveness.resistances.map(type => `${getTypeEmoji(type)} ${type}`).join(", ")}
-
-`;
+| **🟢 Resists** | ${resistanceTypes} | **0.5x** |`;
       }
 
       if (typeEffectiveness.immunities.length > 0) {
+        const immunityTypes = typeEffectiveness.immunities.map(type => `${getTypeEmoji(type)} ${type}`).join(", ");
         markdown += `
-**Immune to** (0x damage):
-${typeEffectiveness.immunities.map(type => `${getTypeEmoji(type)} ${type}`).join(", ")}
-
-`;
+| **🛡️ Immune To** | ${immunityTypes} | **0.0x** |`;
       }
 
       if (typeEffectiveness.strengths.length > 0) {
+        const strengthTypes = typeEffectiveness.strengths.map(type => `${getTypeEmoji(type)} ${type}`).join(", ");
         markdown += `
-**Strong against** (2x damage):
-${typeEffectiveness.strengths.map(type => `${getTypeEmoji(type)} ${type}`).join(", ")}
+| **💥 Strong Against** | ${strengthTypes} | **2.0x** |`;
+      }
+
+      markdown += `
 
 `;
-      }
     }
 
     // Moves section (if enabled in preferences)
@@ -266,31 +271,58 @@ ${typeEffectiveness.strengths.map(type => `${getTypeEmoji(type)} ${type}`).join(
       markdown += `
 ---
 
-## 🥊 Notable Moves
+## 🥊 MOVESET
 
-| Move | Type | Power | Accuracy | PP | Learn Method |
-|------|------|-------|----------|----|----|`;
+`;
 
-      // Show top 10 most recent moves
-      pokemon.pokemon_v2_pokemonmoves
-        .slice(0, 10)
-        .forEach(moveData => {
-          const move = moveData.pokemon_v2_move;
-          const moveName = formatPokemonName(move.name);
-          const moveType = `${getTypeEmoji(move.pokemon_v2_type.name)} ${move.pokemon_v2_type.name}`;
-          const power = move.power || "—";
-          const accuracy = move.accuracy || "—";
-          const pp = move.pp;
-          const learnMethod = moveData.pokemon_v2_movelearnmethod.name;
-          const level = moveData.level > 0 ? ` (Lv.${moveData.level})` : "";
+      // Group moves by learn method
+      const movesByMethod: Record<string, any[]> = {};
+      pokemon.pokemon_v2_pokemonmoves.forEach(moveData => {
+        const method = moveData.pokemon_v2_movelearnmethod.name;
+        if (!movesByMethod[method]) movesByMethod[method] = [];
+        movesByMethod[method].push(moveData);
+      });
+
+      // Show level-up moves first, then other methods
+      const methodOrder = ['level-up', 'machine', 'tutor', 'egg'];
+
+      methodOrder.forEach(method => {
+        if (movesByMethod[method] && movesByMethod[method].length > 0) {
+          const methodName = method === 'level-up' ? 'Level Up' :
+                           method === 'machine' ? 'TM/TR' :
+                           method === 'tutor' ? 'Move Tutor' :
+                           method === 'egg' ? 'Egg Moves' : method;
 
           markdown += `
-| **${moveName}** | ${moveType} | ${power} | ${accuracy}% | ${pp} | ${learnMethod}${level} |`;
-        });
+**${methodName}** (${movesByMethod[method].length} moves)
+
+| Move | Type | Power | Acc | PP | Level |
+|------|------|-------|-----|----|----|`;
+
+          movesByMethod[method]
+            .slice(0, 8) // Show first 8 moves per method
+            .forEach(moveData => {
+              const move = moveData.pokemon_v2_move;
+              const moveName = formatPokemonName(move.name);
+              const moveType = `${getTypeEmoji(move.pokemon_v2_type.name)} ${move.pokemon_v2_type.name}`;
+              const power = move.power || "—";
+              const accuracy = move.accuracy || "—";
+              const pp = move.pp || "—";
+              const level = moveData.level > 0 ? moveData.level : "—";
+
+              markdown += `
+| **${moveName}** | ${moveType} | ${power} | ${accuracy} | ${pp} | ${level} |`;
+            });
+
+          markdown += `
+
+`;
+        }
+      });
 
       markdown += `
+*Showing primary moves. Total moves available: ${pokemon.pokemon_v2_pokemonmoves.length}*
 
-*Showing first 10 moves. Total moves: ${pokemon.pokemon_v2_pokemonmoves.length}*
 `;
     }
 

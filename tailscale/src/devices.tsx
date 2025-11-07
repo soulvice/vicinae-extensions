@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { ActionPanel, Action, List, showToast, Toast, getPreferenceValues } from "@vicinae/api";
+import React, { useState, useEffect, useCallback } from "react";
+import { ActionPanel, Action, List, showToast, Toast, getPreferenceValues, Color, Icon } from "@vicinae/api";
 import { exec } from "child_process";
 import { promisify } from "util";
 
@@ -40,7 +40,12 @@ interface Preferences {
 export default function Command() {
   const [devices, setDevices] = useState<TailscaleDevice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showingDetail, setShowingDetail] = useState(true);
   const preferences = getPreferenceValues<Preferences>();
+
+  const toggleDetails = useCallback(() => {
+    setShowingDetail(!showingDetail);
+  }, [showingDetail]);
 
   const getTailscalePath = () => {
     return preferences.tailscalePath || "/Applications/Tailscale.app/Contents/MacOS/Tailscale";
@@ -157,21 +162,99 @@ export default function Command() {
     return formatLastSeen(device.lastSeen);
   };
 
+  // Device detail component
+  const DeviceDetail = ({ device }: { device: TailscaleDevice }) => {
+    return (
+      <List.Item.Detail
+        metadata={
+          <List.Item.Detail.Metadata>
+            <List.Item.Detail.Metadata.Label title="Hostname" text={device.hostname} />
+            <List.Item.Detail.Metadata.Label title="Device ID" text={device.id} />
+            <List.Item.Detail.Metadata.Separator />
+            {device.ipv4 && (
+              <List.Item.Detail.Metadata.Label title="IPv4 Address" text={device.ipv4} />
+            )}
+            {device.ipv6 && (
+              <List.Item.Detail.Metadata.Label title="IPv6 Address" text={device.ipv6} />
+            )}
+            {device.magicDNS && (
+              <List.Item.Detail.Metadata.Label title="Magic DNS" text={device.magicDNS} />
+            )}
+            <List.Item.Detail.Metadata.Separator />
+            <List.Item.Detail.Metadata.Label
+              title="Status"
+              text={device.isCurrentDevice ? "This Device" : (device.online ? "Online" : "Offline")}
+              icon={{
+                source: device.online ? Icon.CheckCircle : Icon.XMarkCircle,
+                tintColor: device.online ? Color.Green : Color.Red,
+              }}
+            />
+            {!device.isCurrentDevice && (
+              <List.Item.Detail.Metadata.Label
+                title="Last Seen"
+                text={getLastSeenText(device)}
+                icon={{
+                  source: Icon.Clock,
+                  tintColor: Color.Secondary,
+                }}
+              />
+            )}
+          </List.Item.Detail.Metadata>
+        }
+      />
+    );
+  };
+
   return (
-    <List isLoading={isLoading} searchBarPlaceholder="Search devices...">
+    <List
+      isLoading={isLoading}
+      searchBarPlaceholder="Search devices..."
+      isShowingDetail={showingDetail}
+      actions={
+        <ActionPanel>
+          <Action
+            title="Refresh Devices"
+            icon={Icon.ArrowClockwise}
+            onAction={fetchDevices}
+            shortcut={{ modifiers: ["cmd"], key: "r" }}
+          />
+          <Action
+            title={showingDetail ? "Hide Details" : "Show Details"}
+            icon={showingDetail ? Icon.EyeDisabled : Icon.Eye}
+            onAction={toggleDetails}
+            shortcut={{ modifiers: ["cmd"], key: "i" }}
+          />
+        </ActionPanel>
+      }
+    >
       {devices.map((device) => (
         <List.Item
           key={device.id}
           icon={getStatusIcon(device)}
           title={device.hostname}
           subtitle={device.ipv4}
-          accessoryTitle={getLastSeenText(device)}
+          accessories={!showingDetail ? [
+            {
+              text: device.isCurrentDevice ?
+                { value: "This Device", color: Color.Blue } :
+                device.online ?
+                  { value: "Online", color: Color.Green } :
+                  { value: "Offline", color: Color.Red },
+              icon: device.online ? Icon.CheckCircle : Icon.XMarkCircle,
+            },
+            !device.isCurrentDevice ? {
+              text: getLastSeenText(device),
+              icon: Icon.Clock,
+            } : undefined,
+          ].filter(Boolean) : undefined}
+          detail={showingDetail ? <DeviceDetail device={device} /> : undefined}
           actions={
             <ActionPanel>
               <ActionPanel.Section title="Copy Address">
                 {device.ipv4 && (
                   <Action
                     title="Copy IPv4"
+                    icon={Icon.Clipboard}
                     onAction={() => copyToClipboard(device.ipv4, "IPv4")}
                     shortcut={{ modifiers: ["cmd"], key: "4" }}
                   />
@@ -179,6 +262,7 @@ export default function Command() {
                 {device.ipv6 && (
                   <Action
                     title="Copy IPv6"
+                    icon={Icon.Clipboard}
                     onAction={() => copyToClipboard(device.ipv6, "IPv6")}
                     shortcut={{ modifiers: ["cmd"], key: "6" }}
                   />
@@ -186,14 +270,22 @@ export default function Command() {
                 {device.magicDNS && (
                   <Action
                     title="Copy Magic DNS"
+                    icon={Icon.Clipboard}
                     onAction={() => copyToClipboard(device.magicDNS, "Magic DNS")}
                     shortcut={{ modifiers: ["cmd"], key: "d" }}
                   />
                 )}
               </ActionPanel.Section>
-              <ActionPanel.Section title="Refresh">
+              <ActionPanel.Section title="View">
+                <Action
+                  title={showingDetail ? "Hide Details" : "Show Details"}
+                  icon={showingDetail ? Icon.EyeDisabled : Icon.Eye}
+                  onAction={toggleDetails}
+                  shortcut={{ modifiers: ["cmd"], key: "i" }}
+                />
                 <Action
                   title="Refresh Devices"
+                  icon={Icon.ArrowClockwise}
                   onAction={fetchDevices}
                   shortcut={{ modifiers: ["cmd"], key: "r" }}
                 />

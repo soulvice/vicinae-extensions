@@ -36,41 +36,100 @@ export default function Command() {
     return preferences.units === "imperial" ? "mph" : "km/h";
   };
 
+  const getConditionEmoji = (condition: string): string => {
+    const conditionMap: Record<string, string> = {
+      "clear": "☀️",
+      "sunny": "☀️",
+      "partly cloudy": "⛅",
+      "cloudy": "☁️",
+      "overcast": "☁️",
+      "mist": "🌫️",
+      "fog": "🌫️",
+      "rain": "🌧️",
+      "drizzle": "🌦️",
+      "snow": "❄️",
+      "thunderstorm": "⛈️",
+      "sleet": "🌨️",
+      "hail": "🌨️",
+      "wind": "💨",
+      "tornado": "🌪️"
+    };
+
+    const lowerCondition = condition.toLowerCase();
+    for (const [key, emoji] of Object.entries(conditionMap)) {
+      if (lowerCondition.includes(key)) {
+        return emoji;
+      }
+    }
+    return current.condition.nerdIcon || "🌤️";
+  };
+
+  const getTemperatureColor = (temp: number): string => {
+    const tempF = preferences.units === "imperial" ? temp : (temp * 9/5) + 32;
+    if (tempF >= 90) return "🔥"; // Very hot
+    if (tempF >= 75) return "🌡️"; // Warm
+    if (tempF >= 60) return "🟡"; // Mild
+    if (tempF >= 40) return "🔵"; // Cool
+    return "❄️"; // Cold
+  };
+
+  const getUVLevel = (uvIndex: number): string => {
+    if (uvIndex <= 2) return "🟢 Low";
+    if (uvIndex <= 5) return "🟡 Moderate";
+    if (uvIndex <= 7) return "🟠 High";
+    if (uvIndex <= 10) return "🔴 Very High";
+    return "🟣 Extreme";
+  };
+
   const buildMarkdown = () => {
     if (!weatherData) return "";
 
     const { current, location } = weatherData;
     const tempUnit = getTemperatureUnit();
     const windUnit = getWindSpeedUnit();
+    const conditionEmoji = getConditionEmoji(current.condition.description);
+    const tempColor = getTemperatureColor(current.temperature);
+    const uvLevel = getUVLevel(current.uvIndex);
 
     return `
-# ${current.condition.nerdIcon} Current Weather
-
-## ${location.name}, ${location.region}
-### ${location.country}
+# ${conditionEmoji} ${location.name}
+## ${current.condition.description} • ${tempColor} ${current.temperature}${tempUnit}
 
 ---
 
-## ${current.condition.nerdIcon} ${current.condition.description}
+### 🌡️ TEMPERATURE
 
-### 🌡️ Temperature
-- **Current**: ${current.temperature}${tempUnit}
-- **Feels Like**: ${current.feelsLike}${tempUnit}
-
-### 🌬️ Wind & Air
-- **Wind**: ${current.windSpeed} ${windUnit} ${current.windDirection}
-- **Humidity**: ${current.humidity}%
-- **Pressure**: ${current.pressure} hPa
-- **Visibility**: ${current.visibility} km
-
-### ☀️ Other
-- **UV Index**: ${current.uvIndex}
+| | Current | Feels Like |
+|:---:|:---:|:---:|
+| **Value** | **${current.temperature}${tempUnit}** | ${current.feelsLike}${tempUnit} |
 
 ---
 
-*Last updated: ${new Date(current.lastUpdated).toLocaleString()}*
+### 🌬️ WIND & ATMOSPHERE
 
-*Coordinates: ${location.lat}, ${location.lon}*
+| Metric | Value | Status |
+|--------|:-----:|:------:|
+| **Wind Speed** | ${current.windSpeed} ${windUnit} | ${current.windSpeed >= 15 ? "💨 Breezy" : "🍃 Calm"} |
+| **Direction** | ${current.windDirection} | 🧭 |
+| **Pressure** | ${current.pressure} hPa | ${current.pressure >= 1013 ? "📈 High" : "📉 Low"} |
+| **Visibility** | ${current.visibility} km | ${current.visibility >= 10 ? "👁️ Clear" : "🌫️ Limited"} |
+
+---
+
+### 💧 HUMIDITY & UV
+
+| Metric | Value | Level |
+|--------|:-----:|:-----:|
+| **Humidity** | ${current.humidity}% | ${current.humidity >= 70 ? "💧 High" : current.humidity >= 40 ? "💦 Normal" : "🏜️ Low"} |
+| **UV Index** | ${current.uvIndex} | ${uvLevel} |
+
+---
+
+### 📍 LOCATION INFO
+
+**${location.region}, ${location.country}**
+Coordinates: ${location.lat}°, ${location.lon}°
+*Updated: ${new Date(current.lastUpdated).toLocaleString()}*
 `;
   };
 
