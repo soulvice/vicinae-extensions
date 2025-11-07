@@ -105,7 +105,7 @@ export default function Command({ pokemonId = "1" }: PokemonDetailProps) {
     const meters = height / 10;
     const feet = Math.floor(meters * 3.28084);
     const inches = Math.round((meters * 3.28084 - feet) * 12);
-    return `${meters}m (${feet}'${inches.toString().padStart(2, "0")}")`;"
+    return `${meters}m (${feet}'${inches.toString().padStart(2, "0")}")`;
   };
 
   const formatWeight = (weight: number): string => {
