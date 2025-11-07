@@ -127,19 +127,21 @@ export default function Command() {
     const types = poke.pokemon_v2_pokemontypes.map(t => t.pokemon_v2_type.name);
     const primaryType = types[0];
     const generation = poke.pokemon_v2_pokemonspecy?.pokemon_v2_generation;
+
+    // Safe flavor text access with proper null checking
     const flavorText = poke.pokemon_v2_pokemonspecy?.pokemon_v2_pokemonspeciesflavortexts
-      .find(text => text.pokemon_v2_language.name === "en")?.flavor_text
-      .replace(/\f/g, ' ').replace(/\n/g, ' ') || "No description available";
+      ?.find(text => text.pokemon_v2_language.name === "en")?.flavor_text
+      ?.replace(/\f/g, ' ')?.replace(/\n/g, ' ') || "Click to view full details in Pokemon command";
 
-    // Get stats
-    const stats = poke.pokemon_v2_pokemonstats;
-    const hp = stats.find(s => s.pokemon_v2_stat.name === "hp")?.base_stat || 0;
-    const attack = stats.find(s => s.pokemon_v2_stat.name === "attack")?.base_stat || 0;
-    const defense = stats.find(s => s.pokemon_v2_stat.name === "defense")?.base_stat || 0;
-    const speed = stats.find(s => s.pokemon_v2_stat.name === "speed")?.base_stat || 0;
+    // Get stats with null checking
+    const stats = poke.pokemon_v2_pokemonstats || [];
+    const hp = stats.find(s => s.pokemon_v2_stat.name === "hp")?.base_stat || null;
+    const attack = stats.find(s => s.pokemon_v2_stat.name === "attack")?.base_stat || null;
+    const defense = stats.find(s => s.pokemon_v2_stat.name === "defense")?.base_stat || null;
+    const speed = stats.find(s => s.pokemon_v2_stat.name === "speed")?.base_stat || null;
 
-    // Get abilities
-    const abilities = poke.pokemon_v2_pokemonabilities
+    // Get abilities with null checking
+    const abilities = (poke.pokemon_v2_pokemonabilities || [])
       .sort((a, b) => a.slot - b.slot)
       .map(ability => {
         const name = formatPokemonName(ability.pokemon_v2_ability.name);
@@ -168,34 +170,44 @@ export default function Command() {
               />
             )}
 
-            <List.Item.Detail.Metadata.Label
-              title="Height"
-              text={`${(poke.height / 10).toFixed(1)} m`}
-              icon={{
-                source: Icon.Ruler,
-                tintColor: Color.Secondary,
-              }}
-            />
-            <List.Item.Detail.Metadata.Label
-              title="Weight"
-              text={`${(poke.weight / 10).toFixed(1)} kg`}
-              icon={{
-                source: Icon.BarChart,
-                tintColor: Color.Secondary,
-              }}
-            />
+            {poke.height != null && (
+              <List.Item.Detail.Metadata.Label
+                title="Height"
+                text={`${(poke.height / 10).toFixed(1)} m`}
+                icon={{
+                  source: Icon.Ruler,
+                  tintColor: Color.Secondary,
+                }}
+              />
+            )}
+            {poke.weight != null && (
+              <List.Item.Detail.Metadata.Label
+                title="Weight"
+                text={`${(poke.weight / 10).toFixed(1)} kg`}
+                icon={{
+                  source: Icon.BarChart,
+                  tintColor: Color.Secondary,
+                }}
+              />
+            )}
 
-            <List.Item.Detail.Metadata.Separator />
+            {(hp !== null || attack !== null || defense !== null || speed !== null) && (
+              <>
+                <List.Item.Detail.Metadata.Separator />
+                <List.Item.Detail.Metadata.Label title="Base Stats" />
+                {hp !== null && <List.Item.Detail.Metadata.Label title="HP" text={hp.toString()} />}
+                {attack !== null && <List.Item.Detail.Metadata.Label title="Attack" text={attack.toString()} />}
+                {defense !== null && <List.Item.Detail.Metadata.Label title="Defense" text={defense.toString()} />}
+                {speed !== null && <List.Item.Detail.Metadata.Label title="Speed" text={speed.toString()} />}
+              </>
+            )}
 
-            <List.Item.Detail.Metadata.Label title="Base Stats" />
-            <List.Item.Detail.Metadata.Label title="HP" text={hp.toString()} />
-            <List.Item.Detail.Metadata.Label title="Attack" text={attack.toString()} />
-            <List.Item.Detail.Metadata.Label title="Defense" text={defense.toString()} />
-            <List.Item.Detail.Metadata.Label title="Speed" text={speed.toString()} />
-
-            <List.Item.Detail.Metadata.Separator />
-
-            <List.Item.Detail.Metadata.Label title="Abilities" text={abilities.join(", ")} />
+            {abilities.length > 0 && (
+              <>
+                <List.Item.Detail.Metadata.Separator />
+                <List.Item.Detail.Metadata.Label title="Abilities" text={abilities.join(", ")} />
+              </>
+            )}
 
             <List.Item.Detail.Metadata.Separator />
 
@@ -318,13 +330,13 @@ export default function Command() {
                   tintColor: getTypeColor(primaryType),
                 }
               },
-              {
+              ...(poke.height != null && poke.weight != null ? [{
                 text: `${(poke.height / 10).toFixed(1)}m, ${(poke.weight / 10).toFixed(1)}kg`,
                 icon: {
                   source: Icon.BarChart,
                   tintColor: Color.Secondary,
                 }
-              },
+              }] : []),
             ] : undefined}
             icon={{
               source: pokeAPI.getPokemonSpriteUrl(poke),

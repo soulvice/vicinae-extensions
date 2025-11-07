@@ -235,7 +235,7 @@ export default function Command() {
           key={device.id}
           icon={getStatusIcon(device)}
           title={device.hostname}
-          subtitle={device.ipv4}
+          //subtitle={device.ipv4}
           accessories={!showingDetail ? [
             {
               text: device.isCurrentDevice ?

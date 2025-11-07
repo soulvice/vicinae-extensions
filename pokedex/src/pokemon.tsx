@@ -140,31 +140,46 @@ export default function Command({ pokemonId = "1" }: PokemonDetailProps) {
     const spriteUrl = pokeAPI.getPokemonSpriteUrl(pokemon);
     const shinySpriteUrl = pokeAPI.getPokemonSpriteUrl(pokemon, true);
 
-    // Create a Raycast-inspired layout with structured metadata
+    // Create a true side-by-side layout with image on left and specs on right
     let markdown = `
-# ${formatPokemonName(pokemon.name)}
-## Pokedex #${pokemon.id.toString().padStart(3, "0")}
+# ${formatPokemonName(pokemon.name)} • #${pokemon.id.toString().padStart(3, "0")}
 
-| | |
-|:---:|:---|
-| ![${pokemon.name}](${spriteUrl}) | **📋 BASIC INFORMATION**<br/><br/>**Height:** ${formatHeight(pokemon.height)}<br/>**Weight:** ${formatWeight(pokemon.weight)}<br/>**Base Experience:** ${pokemon.base_experience || "Unknown"} XP<br/><br/>**🔗 CLASSIFICATION**<br/>**Generation:** ${pokemon.pokemon_v2_pokemonspecy?.pokemon_v2_generation?.name?.replace('generation-', 'Gen ').toUpperCase() || 'Unknown'}<br/>**Species Color:** ${pokemon.pokemon_v2_pokemonspecy?.pokemon_v2_pokemoncolor?.name?.toUpperCase() || 'Unknown'}<br/><br/>**📖 POKÉDEX ENTRY**<br/>${flavorText} |
+<table>
+<tr>
+<td width="200" style="vertical-align: top; text-align: center;">
 
----
+![${pokemon.name}](${spriteUrl})
 
-## 🏷️ TYPE CLASSIFICATION
-
-${typeString}
+**🏷️ ${typeString}**
 
 ${preferences.showShinySprites ? `
 ---
+**✨ SHINY FORM**
 
-## ✨ ALTERNATE FORMS
-
-| Regular | Shiny |
-|:---:|:---:|
-| ![${pokemon.name}](${spriteUrl}) | ![Shiny ${pokemon.name}](${shinySpriteUrl}) |
-
+![Shiny ${pokemon.name}](${shinySpriteUrl})
 ` : ""}
+
+</td>
+<td width="400" style="vertical-align: top; padding-left: 20px;">
+
+## 📋 BASIC INFORMATION
+
+**Height:** ${formatHeight(pokemon.height)}
+**Weight:** ${formatWeight(pokemon.weight)}
+**Base Experience:** ${pokemon.base_experience || "Unknown"} XP
+
+## 🔗 CLASSIFICATION
+
+**Generation:** ${pokemon.pokemon_v2_pokemonspecy?.pokemon_v2_generation?.name?.replace('generation-', 'Gen ').toUpperCase() || 'Unknown'}
+**Species Color:** ${pokemon.pokemon_v2_pokemonspecy?.pokemon_v2_pokemoncolor?.name?.toUpperCase() || 'Unknown'}
+
+## 📖 POKÉDEX ENTRY
+
+${flavorText}
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -190,13 +205,13 @@ ${preferences.showShinySprites ? `
       else quality = "📉 Weak";
 
       markdown += `
-| **${statName}** | **${value}** | \`${barDisplay}\` ${percentage}% ${quality} |`;
+| **${statName}** | **${value}** | \`${barDisplay}\` ${percentage}% | ${quality} |`;
     });
 
     const totalStats = pokemon.pokemon_v2_pokemonstats.reduce((sum, stat) => sum + stat.base_stat, 0);
 
     markdown += `
-| **TOTAL** | **${totalStats}** | |
+| **TOTAL** | **${totalStats}** | | |
 
 ## 🎯 ABILITIES
 

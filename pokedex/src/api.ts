@@ -17,12 +17,12 @@ export class PokeAPI {
 
   async searchPokemon(query: string, limit = 20): Promise<PokemonV2[]> {
     const searchQuery = `
-      query SearchPokemon($search: String!, $limit: Int!) {
+      query SearchPokemon($search: String, $searchId: Int, $limit: Int!) {
         pokemon_v2_pokemon(
           where: {
             _or: [
               { name: { _ilike: $search } },
-              { id: { _eq: $search } }
+              { id: { _eq: $searchId } }
             ]
           },
           limit: $limit,
@@ -51,19 +51,23 @@ export class PokeAPI {
       }
     `;
 
+    // Better variable handling - separate string and ID search
+    const isNumeric = !isNaN(Number(query));
     const variables = {
-      search: isNaN(Number(query)) ? `%${query}%` : Number(query),
+      search: isNumeric ? null : `%${query.toLowerCase()}%`,
+      searchId: isNumeric ? Number(query) : null,
       limit
     };
 
     try {
       const response = await this.executeGraphQLQuery<PokemonV2Response>(searchQuery, variables);
+      console.log(`Search for "${query}" returned ${response.pokemon_v2_pokemon.length} results`);
       return response.pokemon_v2_pokemon.filter(pokemon =>
         pokemon && pokemon.name && pokemon.id
       );
     } catch (error) {
-      console.warn('Search failed:', error);
-      return []; // Return empty array on search failure
+      console.error('Search failed:', error);
+      throw error; // Don't silently fail - let the UI handle the error
     }
   }
 
@@ -280,6 +284,10 @@ export class PokeAPI {
         ) {
           id
           name
+          height
+          weight
+          base_experience
+          order
           pokemon_v2_pokemontypes {
             slot
             pokemon_v2_type {
