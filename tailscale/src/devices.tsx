@@ -131,22 +131,6 @@ export default function Command() {
     fetchDevices();
   }, []);
 
-  const copyToClipboard = async (text: string, type: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      await showToast({
-        style: Toast.Style.Success,
-        title: `${type} copied to clipboard`,
-        message: text,
-      });
-    } catch (error) {
-      await showToast({
-        style: Toast.Style.Failure,
-        title: "Failed to copy to clipboard",
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  };
 
   const getStatusIcon = (device: TailscaleDevice) => {
     if (device.isCurrentDevice) {
@@ -160,6 +144,25 @@ export default function Command() {
       return "This Device";
     }
     return formatLastSeen(device.lastSeen);
+  };
+
+  const formatMagicDNS = (magicDNS: string) => {
+    const maxLength = 35;
+    if (magicDNS.length <= maxLength) {
+      return magicDNS;
+    }
+
+    // Try to break at a reasonable point (dot or dash)
+    const breakPoints = ['.', '-'];
+    for (const breakPoint of breakPoints) {
+      const lastBreakIndex = magicDNS.lastIndexOf(breakPoint, maxLength - 3);
+      if (lastBreakIndex > 15) { // Don't break too early
+        return magicDNS.substring(0, lastBreakIndex + 1) + "...";
+      }
+    }
+
+    // If no good break point, just truncate
+    return magicDNS.substring(0, maxLength - 3) + "...";
   };
 
   // Device detail component
@@ -178,7 +181,7 @@ export default function Command() {
               <List.Item.Detail.Metadata.Label title="IPv6 Address" text={device.ipv6} />
             )}
             {device.magicDNS && (
-              <List.Item.Detail.Metadata.Label title="Magic DNS" text={device.magicDNS} />
+              <List.Item.Detail.Metadata.Label title="Magic DNS" text={formatMagicDNS(device.magicDNS)} />
             )}
             <List.Item.Detail.Metadata.Separator />
             <List.Item.Detail.Metadata.Label
@@ -252,26 +255,26 @@ export default function Command() {
             <ActionPanel>
               <ActionPanel.Section title="Copy Address">
                 {device.ipv4 && (
-                  <Action
+                  <Action.CopyToClipboard
                     title="Copy IPv4"
                     icon={Icon.Clipboard}
-                    onAction={() => copyToClipboard(device.ipv4, "IPv4")}
+                    content={device.ipv4}
                     shortcut={{ modifiers: ["cmd"], key: "4" }}
                   />
                 )}
                 {device.ipv6 && (
-                  <Action
+                  <Action.CopyToClipboard
                     title="Copy IPv6"
                     icon={Icon.Clipboard}
-                    onAction={() => copyToClipboard(device.ipv6, "IPv6")}
+                    content={device.ipv6}
                     shortcut={{ modifiers: ["cmd"], key: "6" }}
                   />
                 )}
                 {device.magicDNS && (
-                  <Action
+                  <Action.CopyToClipboard
                     title="Copy Magic DNS"
                     icon={Icon.Clipboard}
-                    onAction={() => copyToClipboard(device.magicDNS, "Magic DNS")}
+                    content={device.magicDNS}
                     shortcut={{ modifiers: ["cmd"], key: "d" }}
                   />
                 )}

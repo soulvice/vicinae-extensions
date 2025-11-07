@@ -30,7 +30,7 @@ export default function Command() {
         return newHistory.slice(0, 10);
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load random Pokémon");
+      setError(err instanceof Error ? err.message : "Failed to load random Pokemon");
     } finally {
       setIsLoading(false);
     }
@@ -95,10 +95,10 @@ export default function Command() {
     const spriteUrl = pokeAPI.getPokemonSpriteUrl(pokemon);
 
     let markdown = `
-# 🎲 Random Pokémon
+# 🎲 Random Pokemon
 
 ## ${formatPokemonName(pokemon.name)}
-### Pokédex #${pokemon.id.toString().padStart(3, "0")}
+### Pokedex #${pokemon.id.toString().padStart(3, "0")}
 
 ![${pokemon.name}](${spriteUrl})
 
@@ -166,7 +166,7 @@ export default function Command() {
       markdown += `
 ---
 
-## 📖 Recent Random Pokémon
+## 📖 Recent Random Pokemon
 
 `;
 
@@ -183,9 +183,9 @@ export default function Command() {
   };
 
   const markdown = error
-    ? `# 🎲 Random Pokémon Error\n\n${error}\n\nTry getting another random Pokémon.`
+    ? `# 🎲 Random Pokemon Error\n\n${error}\n\nTry getting another random Pokemon.`
     : isLoading
-    ? "# 🎲 Getting Random Pokémon...\n\nFinding a surprise Pokémon for you!"
+    ? "# 🎲 Getting Random Pokemon...\n\nFinding a surprise Pokemon for you!"
     : buildMarkdown();
 
   return (
@@ -195,7 +195,7 @@ export default function Command() {
       actions={
         <ActionPanel>
           <Action
-            title="Get Another Random Pokémon"
+            title="Get Another Random Pokemon"
             icon={Icon.Shuffle}
             shortcut={{ modifiers: ["cmd"], key: "r" }}
             onAction={loadRandomPokemon}
@@ -211,14 +211,14 @@ export default function Command() {
           )}
           <ActionPanel.Section>
             <Action
-              title="Search Pokédex"
+              title="Search Pokedex"
               icon={Icon.MagnifyingGlass}
               onAction={() => {
                 console.log("Navigate to search");
               }}
             />
             <Action
-              title="Browse Pokédex"
+              title="Browse Pokedex"
               icon={Icon.List}
               onAction={() => {
                 console.log("Navigate to browse");
@@ -233,7 +233,7 @@ export default function Command() {
                 shortcut={{ modifiers: ["cmd"], key: "c" }}
               />
               <Action.CopyToClipboard
-                title="Copy Pokédex Entry"
+                title="Copy Pokedex Entry"
                 content={`#${pokemon.id} ${formatPokemonName(pokemon.name)}`}
                 shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
               />
@@ -243,18 +243,18 @@ export default function Command() {
             <ActionPanel.Section>
               <Action.OpenInBrowser
                 title="View on Bulbapedia"
-                url={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(pokemon.name).replace(" ", "_")}_(Pokémon)`}
+                url={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(pokemon.name).replace(" ", "_")}_(Pokemon)`}
                 shortcut={{ modifiers: ["cmd"], key: "b" }}
               />
               <Action.OpenInBrowser
-                title="View on Pokémon Database"
+                title="View on Pokemon Database"
                 url={`https://pokemondb.net/pokedex/${pokemon.name}`}
                 shortcut={{ modifiers: ["cmd"], key: "d" }}
               />
             </ActionPanel.Section>
           )}
           {history.length > 1 && (
-            <ActionPanel.Section title="Recent Random Pokémon">
+            <ActionPanel.Section title="Recent Random Pokemon">
               {history.slice(1, 4).map((historyPoke) => (
                 <Action
                   key={historyPoke.id}

@@ -41,7 +41,7 @@ export default function Command() {
       setHasMore(newPokemon.length === ITEMS_PER_PAGE);
       setPage(pageNumber);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load Pokémon");
+      setError(err instanceof Error ? err.message : "Failed to load Pokemon");
     } finally {
       setIsLoading(false);
     }
@@ -152,11 +152,10 @@ export default function Command() {
 
     return (
       <List.Item.Detail
-        markdown={`![Pokemon](${pokeAPI.getPokemonSpriteUrl(poke)})`}
         metadata={
           <List.Item.Detail.Metadata>
             <List.Item.Detail.Metadata.Label title="Name" text={formatPokemonName(poke.name)} />
-            <List.Item.Detail.Metadata.Label title="Pokédex #" text={`#${poke.id.toString().padStart(3, "0")}`} />
+            <List.Item.Detail.Metadata.Label title="Pokedex #" text={`#${poke.id.toString().padStart(3, "0")}`} />
             <List.Item.Detail.Metadata.Separator />
 
             <List.Item.Detail.Metadata.Label title="Type(s)" text={types.map(type =>
@@ -214,7 +213,7 @@ export default function Command() {
   return (
     <List
       isLoading={isLoading}
-      searchBarPlaceholder="Search Pokémon by name or number..."
+      searchBarPlaceholder="Search Pokemon by name or number..."
       filtering={false}
       isShowingDetail={showingDetail}
       onSearchTextChange={(searchText) => {
@@ -239,7 +238,7 @@ export default function Command() {
       actions={
         <ActionPanel>
           <Action
-            title="Load More Pokémon"
+            title="Load More Pokemon"
             icon={Icon.Plus}
             onAction={loadMore}
             shortcut={{ modifiers: ["cmd"], key: "l" }}
@@ -321,7 +320,7 @@ export default function Command() {
                     />
                     <ActionPanel.Section title="External Links">
                       <Action.OpenInBrowser
-                        title="View on Pokémon Database"
+                        title="View on Pokemon Database"
                         icon={Icon.Globe}
                         url={`https://pokemondb.net/pokedex/${poke.name}`}
                         shortcut={{ modifiers: ["cmd"], key: "d" }}
@@ -329,7 +328,7 @@ export default function Command() {
                       <Action.OpenInBrowser
                         title="View on Bulbapedia"
                         icon={Icon.Book}
-                        url={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(poke.name).replace(" ", "_")}_(Pokémon)`}
+                        url={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(poke.name).replace(" ", "_")}_(Pokemon)`}
                         shortcut={{ modifiers: ["cmd"], key: "b" }}
                       />
                     </ActionPanel.Section>
@@ -341,7 +340,7 @@ export default function Command() {
                         shortcut={{ modifiers: ["cmd"], key: "c" }}
                       />
                       <Action.CopyToClipboard
-                        title="Copy Pokédex Info"
+                        title="Copy Pokedex Info"
                         icon={Icon.Clipboard}
                         content={`#${poke.id} ${formatPokemonName(poke.name)} - ${types.join("/")}`}
                         shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
@@ -356,7 +355,7 @@ export default function Command() {
                         }}
                       />
                       <Action
-                        title="Random Pokémon"
+                        title="Random Pokemon"
                         icon={Icon.Shuffle}
                         shortcut={{ modifiers: ["cmd"], key: "r" }}
                         onAction={() => {
@@ -376,7 +375,7 @@ export default function Command() {
 
           {hasMore && !isLoading && (
             <List.Item
-              title="Load More Pokémon"
+              title="Load More Pokemon"
               icon={Icon.Plus}
               actions={
                 <ActionPanel>

@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "pokedex",
-  "title": "Pokédex Viewer",
-  "description": "Browse and view detailed Pokémon information using PokéAPI GraphQL with split-view layout",
+  "title": "Pokedex Viewer",
+  "description": "Browse and view detailed Pokemon information using PokeAPI GraphQL with split-view layout",
   "icon": "extension_icon.png",
   "author": "dadmin",
   "license": "MIT",
@@ -13,26 +13,26 @@
   "commands": [
     {
       "name": "browse",
-      "title": "Browse Pokédex",
+      "title": "Browse Pokedex",
       "description": "Search and browse all Pokémon in the Pokédex",
       "mode": "view"
     },
     {
       "name": "pokemon",
-      "title": "View Pokémon Details",
-      "description": "View detailed information about a specific Pokémon",
+      "title": "View Pokemon Details",
+      "description": "View detailed information about a specific Pokemon",
       "mode": "view"
     },
     {
       "name": "search",
-      "title": "Search Pokémon",
-      "description": "Search for Pokémon by name, type, or Pokédex number",
+      "title": "Search Pokemon",
+      "description": "Search for Pokemon by name, type, or Pokedex number",
       "mode": "view"
     },
     {
       "name": "random",
-      "title": "Random Pokémon",
-      "description": "View a random Pokémon from the Pokédex",
+      "title": "Random Pokemon",
+      "description": "View a random Pokemon from the Pokedex",
       "mode": "view"
     }
   ],

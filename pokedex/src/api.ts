@@ -97,13 +97,13 @@ export class PokeAPI {
       } catch (parseError) {
         // Handle HTML "Not Found" responses
         if (pokemonResponse.includes('Not Found')) {
-          throw new Error(`Pokémon '${pokemonId}' not found`);
+          throw new Error(`Pokemon '${pokemonId}' not found`);
         }
         throw new Error('Invalid JSON response from Pokemon API');
       }
 
       if (pokemonData.detail === 'Not found.') {
-        throw new Error(`Pokémon '${pokemonId}' not found`);
+        throw new Error(`Pokemon '${pokemonId}' not found`);
       }
 
       // Fetch species data for additional info
@@ -188,12 +188,12 @@ export class PokeAPI {
 
       // Validate pokemon data
       if (!pokemon.name || !pokemon.id) {
-        throw new Error(`Invalid Pokémon data received for ${pokemonId}`);
+        throw new Error(`Invalid Pokemon data received for ${pokemonId}`);
       }
 
       // Ensure required nested data exists
       if (!pokemon.pokemon_v2_pokemontypes || pokemon.pokemon_v2_pokemontypes.length === 0) {
-        throw new Error(`Pokémon ${pokemon.name} has no type information`);
+        throw new Error(`Pokemon ${pokemon.name} has no type information`);
       }
 
       // Cache the data if caching is enabled
@@ -204,7 +204,7 @@ export class PokeAPI {
       return pokemon;
 
     } catch (error) {
-      throw new Error(`Failed to fetch Pokémon data: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`Failed to fetch Pokemon data: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -252,14 +252,14 @@ export class PokeAPI {
             console.warn("Falling back to Pikachu as random Pokemon");
             return await this.getPokemon(25);
           } catch (fallbackError) {
-            throw new Error("Failed to get random Pokémon after multiple attempts");
+            throw new Error("Failed to get random Pokemon after multiple attempts");
           }
         }
-        console.warn(`Attempt ${attempts} failed for random Pokémon, trying again...`);
+        console.warn(`Attempt ${attempts} failed for random Pokemon, trying again...`);
       }
     }
 
-    throw new Error("Failed to get random Pokémon");
+    throw new Error("Failed to get random Pokemon");
   }
 
   async browsePokemon(offset = 0, limit = 50): Promise<PokemonV2[]> {
@@ -423,7 +423,7 @@ export class PokeAPI {
       if (error instanceof Error && error.message.includes('GraphQL Error:')) {
         throw error; // Re-throw GraphQL errors as-is
       }
-      throw new Error(`Failed to fetch Pokémon data: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`Failed to fetch Pokemon data: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 

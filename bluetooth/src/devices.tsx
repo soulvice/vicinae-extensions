@@ -266,13 +266,13 @@ function DeviceListItem({
 						<Action.Open
 							title="Start Scanning"
 							icon={Icon.Bluetooth}
-							target="vicinae://extensions/Gelei/bluetooth/scan"
+							target="vicinae://extensions/soulvice/bluetooth/scan"
 							shortcut={{ modifiers: ["cmd"], key: "s" }}
 						/>
 						<Action.Open
 							title="Make Discoverable"
 							icon={Icon.Eye}
-							target="vicinae://extensions/Gelei/bluetooth/discoverable"
+							target="vicinae://extensions/soulvice/bluetooth/discoverable"
 							shortcut={{ modifiers: ["cmd"], key: "d" }}
 						/>
 						<Action
@@ -316,7 +316,7 @@ export default function Devices() {
 							<Action.Open
 								title="Start Scanning"
 								icon={Icon.Bluetooth}
-								target="vicinae://extensions/Gelei/bluetooth/scan"
+								target="vicinae://extensions/soulvice/bluetooth/scan"
 								shortcut={{ modifiers: ["cmd"], key: "s" }}
 							/>
 						</ActionPanel>
@@ -336,7 +336,7 @@ export default function Devices() {
 					<Action.Open
 						title="Start Scanning"
 						icon={Icon.Bluetooth}
-						target="vicinae://extensions/Gelei/bluetooth/scan"
+						target="vicinae://extensions/soulvice/bluetooth/scan"
 						shortcut={{ modifiers: ["cmd"], key: "s" }}
 					/>
 					<Action

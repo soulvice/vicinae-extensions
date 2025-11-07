@@ -38,7 +38,7 @@ export default function Command({ pokemonId = "1" }: PokemonDetailProps) {
       const effectiveness = await pokeAPI.getTypeEffectiveness(types);
       setTypeEffectiveness(effectiveness);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load Pokémon");
+      setError(err instanceof Error ? err.message : "Failed to load Pokemon");
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +143,7 @@ export default function Command({ pokemonId = "1" }: PokemonDetailProps) {
     // Create a Raycast-inspired layout with structured metadata
     let markdown = `
 # ${formatPokemonName(pokemon.name)}
-## Pokédex #${pokemon.id.toString().padStart(3, "0")}
+## Pokedex #${pokemon.id.toString().padStart(3, "0")}
 
 | | |
 |:---:|:---|
@@ -330,9 +330,9 @@ ${preferences.showShinySprites ? `
   };
 
   const markdown = error
-    ? `# ❌ Error\n\n${error}\n\nTry refreshing or check the Pokémon name/number.`
+    ? `# ❌ Error\n\n${error}\n\nTry refreshing or check the Pokemon name/number.`
     : isLoading
-    ? "# 🔍 Loading Pokémon...\n\nFetching Pokédex data..."
+    ? "# 🔍 Loading Pokemon...\n\nFetching Pokedex data..."
     : buildMarkdown();
 
   return (
@@ -348,7 +348,7 @@ ${preferences.showShinySprites ? `
           />
           <ActionPanel.Section>
             <Action
-              title="Random Pokémon"
+              title="Random Pokemon"
               icon={Icon.Shuffle}
               shortcut={{ modifiers: ["cmd"], key: "r" }}
               onAction={() => {
@@ -358,14 +358,14 @@ ${preferences.showShinySprites ? `
               }}
             />
             <Action
-              title="Browse Pokédex"
+              title="Browse Pokedex"
               icon={Icon.List}
               onAction={() => {
                 console.log("Navigate to browse");
               }}
             />
             <Action
-              title="Search Pokémon"
+              title="Search Pokemon"
               icon={Icon.MagnifyingGlass}
               onAction={() => {
                 console.log("Navigate to search");
@@ -380,7 +380,7 @@ ${preferences.showShinySprites ? `
                 shortcut={{ modifiers: ["cmd"], key: "c" }}
               />
               <Action.CopyToClipboard
-                title="Copy Pokédex Entry"
+                title="Copy Pokedex Entry"
                 content={`#${pokemon.id} ${formatPokemonName(pokemon.name)} - ${pokemon.pokemon_v2_pokemontypes.map(t => t.pokemon_v2_type.name).join("/")}`}
                 shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
               />
@@ -395,11 +395,11 @@ ${preferences.showShinySprites ? `
             <ActionPanel.Section>
               <Action.OpenInBrowser
                 title="View on Bulbapedia"
-                url={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(pokemon.name).replace(" ", "_")}_(Pokémon)`}
+                url={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(pokemon.name).replace(" ", "_")}_(Pokemon)`}
                 shortcut={{ modifiers: ["cmd"], key: "b" }}
               />
               <Action.OpenInBrowser
-                title="View on Pokémon Database"
+                title="View on Pokemon Database"
                 url={`https://pokemondb.net/pokedex/${pokemon.name}`}
                 shortcut={{ modifiers: ["cmd"], key: "d" }}
               />

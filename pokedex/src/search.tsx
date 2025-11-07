@@ -17,6 +17,25 @@ export default function Command() {
     setShowingDetail(!showingDetail);
   }, [showingDetail]);
 
+  const performSearch = useCallback(async (query: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const results = await pokeAPI.searchPokemon(query, 50);
+      setPokemon(results);
+
+      if (results.length === 0) {
+        setError("No Pokemon found matching your search");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Search failed");
+      setPokemon([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pokeAPI]);
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchText.length > 0 && !isLoading) {
@@ -29,25 +48,6 @@ export default function Command() {
 
     return () => clearTimeout(timeoutId);
   }, [searchText, isLoading, performSearch]);
-
-  const performSearch = useCallback(async (query: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const results = await pokeAPI.searchPokemon(query, 50);
-      setPokemon(results);
-
-      if (results.length === 0) {
-        setError("No Pokémon found matching your search");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Search failed");
-      setPokemon([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [pokeAPI]);
 
   const getTypeEmoji = (typeName: string): string => {
     const typeEmojis: Record<string, string> = {
@@ -122,7 +122,7 @@ export default function Command() {
     return generations[genId] || `Gen ${genId}`;
   };
 
-  // Pokemon detail component
+  // Pokemon detail component - following Tailscale Devices pattern
   const PokemonDetail = ({ pokemon: poke }: { pokemon: PokemonV2 }) => {
     const types = poke.pokemon_v2_pokemontypes.map(t => t.pokemon_v2_type.name);
     const primaryType = types[0];
@@ -148,11 +148,10 @@ export default function Command() {
 
     return (
       <List.Item.Detail
-        markdown={`![Pokemon](${pokeAPI.getPokemonSpriteUrl(poke)})`}
         metadata={
           <List.Item.Detail.Metadata>
             <List.Item.Detail.Metadata.Label title="Name" text={formatPokemonName(poke.name)} />
-            <List.Item.Detail.Metadata.Label title="Pokédex #" text={`#${poke.id.toString().padStart(3, "0")}`} />
+            <List.Item.Detail.Metadata.Label title="Pokedex #" text={`#${poke.id.toString().padStart(3, "0")}`} />
             <List.Item.Detail.Metadata.Separator />
 
             <List.Item.Detail.Metadata.Label title="Type(s)" text={types.map(type =>
@@ -212,7 +211,7 @@ export default function Command() {
       isLoading={isLoading}
       searchText={searchText}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search by Pokémon name, number, or type..."
+      searchBarPlaceholder="Search by Pokemon name, number, or type..."
       filtering={false}
       isShowingDetail={showingDetail}
       actions={
@@ -224,7 +223,7 @@ export default function Command() {
             shortcut={{ modifiers: ["cmd"], key: "i" }}
           />
           <Action
-            title="Random Pokémon"
+            title="Random Pokemon"
             icon={Icon.Shuffle}
             onAction={() => {
               pokeAPI.getRandomPokemon()
@@ -245,13 +244,13 @@ export default function Command() {
       }
     >
       <List.EmptyView
-        title="Search Pokédex"
-        description="Enter a Pokémon name, Pokédex number, or type to search"
+        title="Search Pokedex"
+        description="Enter a Pokemon name, Pokedex number, or type to search"
         icon={Icon.MagnifyingGlass}
         actions={
           <ActionPanel>
             <Action
-              title="Random Pokémon"
+              title="Random Pokemon"
               icon={Icon.Shuffle}
               onAction={() => {
                 pokeAPI.getRandomPokemon()
@@ -262,7 +261,7 @@ export default function Command() {
               }}
             />
             <Action
-              title="Browse All Pokémon"
+              title="Browse All Pokemon"
               icon={Icon.List}
               onAction={() => {
                 console.log("Navigate to browse");
@@ -285,7 +284,7 @@ export default function Command() {
                 onAction={() => setSearchText("")}
               />
               <Action
-                title="Random Pokémon"
+                title="Random Pokemon"
                 icon={Icon.Shuffle}
                 onAction={() => {
                   pokeAPI.getRandomPokemon()
@@ -345,7 +344,7 @@ export default function Command() {
                 />
                 <ActionPanel.Section title="External Links">
                   <Action.OpenInBrowser
-                    title="View on Pokémon Database"
+                    title="View on Pokemon Database"
                     icon={Icon.Globe}
                     url={`https://pokemondb.net/pokedex/${poke.name}`}
                     shortcut={{ modifiers: ["cmd"], key: "d" }}
@@ -353,7 +352,7 @@ export default function Command() {
                   <Action.OpenInBrowser
                     title="View on Bulbapedia"
                     icon={Icon.Book}
-                    url={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(poke.name).replace(" ", "_")}_(Pokémon)`}
+                    url={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(poke.name).replace(" ", "_")}_(Pokemon)`}
                     shortcut={{ modifiers: ["cmd"], key: "b" }}
                   />
                 </ActionPanel.Section>
@@ -365,7 +364,7 @@ export default function Command() {
                     shortcut={{ modifiers: ["cmd"], key: "c" }}
                   />
                   <Action.CopyToClipboard
-                    title="Copy Pokédex Info"
+                    title="Copy Pokedex Info"
                     icon={Icon.Clipboard}
                     content={`#${poke.id} ${formatPokemonName(poke.name)} - ${types.join("/")}`}
                     shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
@@ -380,7 +379,7 @@ export default function Command() {
                     }}
                   />
                   <Action
-                    title="Random Pokémon"
+                    title="Random Pokemon"
                     icon={Icon.Shuffle}
                     shortcut={{ modifiers: ["cmd"], key: "r" }}
                     onAction={() => {
