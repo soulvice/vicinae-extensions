@@ -75,59 +75,73 @@ export class WeatherAPI {
   }
 
   private transformWttrData(data: any, location: string): WeatherData {
-    const current = data.current_condition[0];
+    const current = data.current_condition?.[0];
     const forecast = data.weather;
-    const locationInfo = data.nearest_area[0];
+    const locationInfo = data.nearest_area?.[0];
+
+    // Validate required data exists
+    if (!current || !forecast || !locationInfo) {
+      throw new Error("Invalid weather data format received from service");
+    }
 
     // Get current condition with night/day consideration
     const currentTime = new Date().toISOString();
     const todayForecast = forecast[0];
-    const astronomy = todayForecast.astronomy[0];
-    const isNight = isNightTime(currentTime, astronomy.sunrise, astronomy.sunset);
+    const astronomy = todayForecast?.astronomy?.[0];
+    const isNight = astronomy ? isNightTime(currentTime, astronomy.sunrise, astronomy.sunset) : false;
 
-    const currentCondition = getWeatherCondition(current.weatherCode, isNight);
+    // Ensure weatherCode exists
+    const weatherCode = current.weatherCode || current.weathercode || current.WeatherCode;
+    if (!weatherCode) {
+      throw new Error("Weather condition code not found in response");
+    }
+
+    const currentCondition = getWeatherCondition(weatherCode, isNight);
 
     const weatherData: WeatherData = {
       current: {
-        location: locationInfo.areaName[0].value,
-        region: locationInfo.region[0].value,
-        country: locationInfo.country[0].value,
-        temperature: this.convertTemperature(parseInt(current.temp_C)),
-        feelsLike: this.convertTemperature(parseInt(current.FeelsLikeC)),
+        location: locationInfo.areaName?.[0]?.value || locationInfo.areaName || location,
+        region: locationInfo.region?.[0]?.value || locationInfo.region || "",
+        country: locationInfo.country?.[0]?.value || locationInfo.country || "",
+        temperature: this.convertTemperature(parseInt(current.temp_C || current.tempC || "0")),
+        feelsLike: this.convertTemperature(parseInt(current.FeelsLikeC || current.feelsLikeC || current.temp_C || "0")),
         condition: currentCondition,
-        humidity: parseInt(current.humidity),
-        pressure: parseInt(current.pressure),
-        windSpeed: this.convertWindSpeed(parseInt(current.windspeedKmph)),
-        windDirection: current.winddir16Point,
-        visibility: parseInt(current.visibility),
-        uvIndex: parseInt(current.uvIndex),
+        humidity: parseInt(current.humidity || "50"),
+        pressure: parseInt(current.pressure || "1013"),
+        windSpeed: this.convertWindSpeed(parseInt(current.windspeedKmph || current.windSpeedKmph || "0")),
+        windDirection: current.winddir16Point || current.windDirection || "N",
+        visibility: parseInt(current.visibility || "10"),
+        uvIndex: parseInt(current.uvIndex || current.uv || "0"),
         lastUpdated: currentTime,
       },
       forecast: forecast.slice(0, parseInt(this.preferences.forecastDays)).map((day: any) => {
-        const astronomy = day.astronomy[0];
-        const hourly = day.hourly[12]; // Use midday data for daily summary
-        const condition = getWeatherCondition(hourly.weatherCode);
+        const astronomy = day.astronomy?.[0];
+        const hourly = day.hourly?.[12]; // Use midday data for daily summary
+
+        // Get weather code from hourly data with fallback options
+        const hourlyWeatherCode = hourly?.weatherCode || hourly?.weathercode || hourly?.WeatherCode;
+        const condition = getWeatherCondition(hourlyWeatherCode || "113"); // Default to sunny
 
         return {
           date: day.date,
-          maxTemp: this.convertTemperature(parseInt(day.maxtempC)),
-          minTemp: this.convertTemperature(parseInt(day.mintempC)),
+          maxTemp: this.convertTemperature(parseInt(day.maxtempC || day.maxTempC || "0")),
+          minTemp: this.convertTemperature(parseInt(day.mintempC || day.minTempC || "0")),
           condition,
-          chanceOfRain: parseInt(day.hourly[0].chanceofrain || "0"),
-          sunrise: astronomy.sunrise,
-          sunset: astronomy.sunset,
-          moonPhase: astronomy.moon_phase,
-          avgHumidity: Math.round(
-            day.hourly.reduce((sum: number, hour: any) => sum + parseInt(hour.humidity), 0) / day.hourly.length
-          ),
+          chanceOfRain: parseInt(day.hourly?.[0]?.chanceofrain || day.hourly?.[0]?.chanceOfRain || "0"),
+          sunrise: astronomy?.sunrise || "06:00 AM",
+          sunset: astronomy?.sunset || "06:00 PM",
+          moonPhase: astronomy?.moon_phase || astronomy?.moonPhase || "Unknown",
+          avgHumidity: day.hourly?.length > 0 ? Math.round(
+            day.hourly.reduce((sum: number, hour: any) => sum + parseInt(hour.humidity || "50"), 0) / day.hourly.length
+          ) : 50,
         };
       }),
       location: {
-        name: locationInfo.areaName[0].value,
-        region: locationInfo.region[0].value,
-        country: locationInfo.country[0].value,
-        lat: parseFloat(locationInfo.latitude),
-        lon: parseFloat(locationInfo.longitude),
+        name: locationInfo.areaName?.[0]?.value || locationInfo.areaName || location,
+        region: locationInfo.region?.[0]?.value || locationInfo.region || "",
+        country: locationInfo.country?.[0]?.value || locationInfo.country || "",
+        lat: parseFloat(locationInfo.latitude || locationInfo.lat || "0"),
+        lon: parseFloat(locationInfo.longitude || locationInfo.lon || "0"),
         localTime: currentTime,
       },
     };

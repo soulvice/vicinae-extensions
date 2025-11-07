@@ -56,8 +56,15 @@ export class PokeAPI {
       limit
     };
 
-    return this.executeGraphQLQuery<PokemonV2Response>(searchQuery, variables)
-      .then(response => response.pokemon_v2_pokemon);
+    try {
+      const response = await this.executeGraphQLQuery<PokemonV2Response>(searchQuery, variables);
+      return response.pokemon_v2_pokemon.filter(pokemon =>
+        pokemon && pokemon.name && pokemon.id
+      );
+    } catch (error) {
+      console.warn('Search failed:', error);
+      return []; // Return empty array on search failure
+    }
   }
 
   async getPokemon(pokemonId: number | string): Promise<PokemonV2> {
@@ -69,138 +76,190 @@ export class PokeAPI {
       }
     }
 
-    const query = `
-      query GetPokemon($id: Int, $name: String) {
-        pokemon_v2_pokemon(
-          where: {
-            _or: [
-              { id: { _eq: $id } },
-              { name: { _eq: $name } }
-            ]
+    try {
+      // Use REST API instead of GraphQL for more reliability
+      const pokemonUrl = `${this.restBaseUrl}/pokemon/${pokemonId.toString().toLowerCase()}`;
+      const speciesUrl = `${this.restBaseUrl}/pokemon-species/${pokemonId.toString().toLowerCase()}`;
+
+      // Fetch pokemon basic data
+      const pokemonResponse = execSync(`curl -s "${pokemonUrl}"`, {
+        encoding: "utf-8",
+        timeout: 15000
+      });
+
+      if (!pokemonResponse || pokemonResponse.trim() === '') {
+        throw new Error('Empty response from Pokemon API');
+      }
+
+      let pokemonData;
+      try {
+        pokemonData = JSON.parse(pokemonResponse);
+      } catch (parseError) {
+        // Handle HTML "Not Found" responses
+        if (pokemonResponse.includes('Not Found')) {
+          throw new Error(`Pokémon '${pokemonId}' not found`);
+        }
+        throw new Error('Invalid JSON response from Pokemon API');
+      }
+
+      if (pokemonData.detail === 'Not found.') {
+        throw new Error(`Pokémon '${pokemonId}' not found`);
+      }
+
+      // Fetch species data for additional info
+      let speciesData = null;
+      try {
+        const speciesResponse = execSync(`curl -s "${speciesUrl}"`, {
+          encoding: "utf-8",
+          timeout: 10000
+        });
+        if (speciesResponse && speciesResponse.trim() !== '') {
+          speciesData = JSON.parse(speciesResponse);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch species data, using basic Pokemon data only');
+      }
+
+      // Convert REST API format to our PokemonV2 format
+      const pokemon: PokemonV2 = {
+        id: pokemonData.id,
+        name: pokemonData.name,
+        height: pokemonData.height,
+        weight: pokemonData.weight,
+        base_experience: pokemonData.base_experience || 0,
+        order: pokemonData.order || pokemonData.id,
+        pokemon_v2_pokemontypes: pokemonData.types.map((type: any) => ({
+          slot: type.slot,
+          pokemon_v2_type: {
+            id: 0, // REST API doesn't provide type ID easily
+            name: type.type.name
+          }
+        })),
+        pokemon_v2_pokemonstats: pokemonData.stats.map((stat: any) => ({
+          base_stat: stat.base_stat,
+          effort: stat.effort,
+          pokemon_v2_stat: {
+            id: 0, // REST API doesn't provide stat ID easily
+            name: stat.stat.name
+          }
+        })),
+        pokemon_v2_pokemonabilities: pokemonData.abilities.map((ability: any) => ({
+          is_hidden: ability.is_hidden,
+          slot: ability.slot,
+          pokemon_v2_ability: {
+            id: 0, // REST API doesn't provide ability ID easily
+            name: ability.ability.name
+          }
+        })),
+        pokemon_v2_pokemonmoves: pokemonData.moves.slice(0, 50).map((moveData: any) => ({
+          level: moveData.version_group_details[0]?.level_learned_at || 0,
+          pokemon_v2_move: {
+            id: 0, // REST API doesn't provide move ID easily
+            name: moveData.move.name,
+            power: null, // Would need additional API call
+            accuracy: null, // Would need additional API call
+            pp: null, // Would need additional API call
+            pokemon_v2_type: {
+              name: "unknown" // Would need additional API call
+            },
+            pokemon_v2_movedamageclass: {
+              name: "unknown" // Would need additional API call
+            }
           },
-          limit: 1
-        ) {
-          id
-          name
-          height
-          weight
-          base_experience
-          order
-          pokemon_v2_pokemontypes {
-            slot
-            pokemon_v2_type {
-              id
-              name
-            }
+          pokemon_v2_movelearnmethod: {
+            name: moveData.version_group_details[0]?.move_learn_method.name || "unknown"
           }
-          pokemon_v2_pokemonstats {
-            base_stat
-            effort
-            pokemon_v2_stat {
-              id
-              name
-            }
-          }
-          pokemon_v2_pokemonabilities {
-            is_hidden
-            slot
-            pokemon_v2_ability {
-              id
-              name
-              pokemon_v2_abilityeffecttexts(
-                where: { pokemon_v2_language: { name: { _eq: "en" } } }
-                limit: 1
-              ) {
-                effect
-                short_effect
-              }
-            }
-          }
-          pokemon_v2_pokemonmoves(
-            limit: 50
-            order_by: { level: asc }
-          ) {
-            level
-            pokemon_v2_move {
-              id
-              name
-              power
-              accuracy
-              pp
-              pokemon_v2_type {
-                name
-              }
-              pokemon_v2_movedamageclass {
-                name
-              }
-              pokemon_v2_moveeffecttexts(
-                where: { pokemon_v2_language: { name: { _eq: "en" } } }
-                limit: 1
-              ) {
-                effect
-                short_effect
-              }
-            }
-            pokemon_v2_movelearnmethod {
-              name
-            }
-          }
-          pokemon_v2_pokemonspecy {
-            id
-            name
-            base_happiness
-            capture_rate
-            pokemon_v2_pokemoncolor {
-              name
-            }
-            pokemon_v2_generation {
-              id
-              name
-            }
-            pokemon_v2_pokemonspeciesflavortexts(
-              where: {
-                pokemon_v2_language: { name: { _eq: "en" } }
-              }
-              limit: 3
-              order_by: { pokemon_v2_version: { id: desc } }
-            ) {
-              flavor_text
-              pokemon_v2_language {
-                name
-              }
-              pokemon_v2_version {
-                name
-              }
-            }
+        })),
+        pokemon_v2_pokemonspecy: {
+          id: speciesData?.id || pokemonData.id,
+          name: speciesData?.name || pokemonData.name,
+          base_happiness: speciesData?.base_happiness || 50,
+          capture_rate: speciesData?.capture_rate || 45,
+          pokemon_v2_pokemoncolor: {
+            name: speciesData?.color?.name || "unknown"
+          },
+          pokemon_v2_generation: {
+            id: speciesData?.generation?.url?.match(/\/(\d+)\/$/)?.[1] ?
+                parseInt(speciesData.generation.url.match(/\/(\d+)\/$/)[1]) : 1,
+            name: speciesData?.generation?.name || "generation-i"
           }
         }
+      };
+
+      // Validate pokemon data
+      if (!pokemon.name || !pokemon.id) {
+        throw new Error(`Invalid Pokémon data received for ${pokemonId}`);
       }
-    `;
 
-    const variables = isNaN(Number(pokemonId))
-      ? { name: pokemonId.toString().toLowerCase(), id: null }
-      : { id: Number(pokemonId), name: null };
+      // Ensure required nested data exists
+      if (!pokemon.pokemon_v2_pokemontypes || pokemon.pokemon_v2_pokemontypes.length === 0) {
+        throw new Error(`Pokémon ${pokemon.name} has no type information`);
+      }
 
-    const response = await this.executeGraphQLQuery<PokemonV2Response>(query, variables);
+      // Cache the data if caching is enabled
+      if (this.preferences.enableCaching) {
+        this.setCachedPokemon(pokemonId.toString(), pokemon);
+      }
 
-    if (!response.pokemon_v2_pokemon.length) {
-      throw new Error(`Pokémon '${pokemonId}' not found`);
+      return pokemon;
+
+    } catch (error) {
+      throw new Error(`Failed to fetch Pokémon data: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
-
-    const pokemon = response.pokemon_v2_pokemon[0];
-
-    // Cache the data if caching is enabled
-    if (this.preferences.enableCaching) {
-      this.setCachedPokemon(pokemonId.toString(), pokemon);
-    }
-
-    return pokemon;
   }
 
   async getRandomPokemon(): Promise<PokemonV2> {
-    const maxPokemonId = 1010; // Approximate current max Pokemon ID
-    const randomId = Math.floor(Math.random() * maxPokemonId) + 1;
-    return this.getPokemon(randomId);
+    let attempts = 0;
+    const maxAttempts = 5; // Prevent infinite loops
+
+    // Define generation ranges to improve success rate
+    const generationRanges = [
+      { min: 1, max: 151 },     // Gen 1 (Kanto)
+      { min: 152, max: 251 },   // Gen 2 (Johto)
+      { min: 252, max: 386 },   // Gen 3 (Hoenn)
+      { min: 387, max: 493 },   // Gen 4 (Sinnoh)
+      { min: 494, max: 649 },   // Gen 5 (Unova)
+      { min: 650, max: 721 },   // Gen 6 (Kalos)
+      { min: 722, max: 809 },   // Gen 7 (Alola)
+      { min: 810, max: 905 }    // Gen 8 (Galar) - conservative upper limit
+    ];
+
+    while (attempts < maxAttempts) {
+      try {
+        // If user specified generation preference, use that range
+        let randomId;
+        if (this.preferences.generation !== "all" && !isNaN(Number(this.preferences.generation))) {
+          const genIndex = Number(this.preferences.generation) - 1;
+          if (genIndex >= 0 && genIndex < generationRanges.length) {
+            const range = generationRanges[genIndex];
+            randomId = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+          } else {
+            // Fallback to Gen 1 if invalid generation
+            randomId = Math.floor(Math.random() * 151) + 1;
+          }
+        } else {
+          // Random from all generations, but be more conservative
+          const range = generationRanges[Math.floor(Math.random() * generationRanges.length)];
+          randomId = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        }
+
+        return await this.getPokemon(randomId);
+      } catch (error) {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          // As last resort, try a known safe Pokemon (Pikachu)
+          try {
+            console.warn("Falling back to Pikachu as random Pokemon");
+            return await this.getPokemon(25);
+          } catch (fallbackError) {
+            throw new Error("Failed to get random Pokémon after multiple attempts");
+          }
+        }
+        console.warn(`Attempt ${attempts} failed for random Pokémon, trying again...`);
+      }
+    }
+
+    throw new Error("Failed to get random Pokémon");
   }
 
   async browsePokemon(offset = 0, limit = 50): Promise<PokemonV2[]> {
@@ -240,8 +299,15 @@ export class PokeAPI {
 
     const variables = { offset, limit };
 
-    const response = await this.executeGraphQLQuery<PokemonV2Response>(query, variables);
-    return response.pokemon_v2_pokemon;
+    try {
+      const response = await this.executeGraphQLQuery<PokemonV2Response>(query, variables);
+      return response.pokemon_v2_pokemon.filter(pokemon =>
+        pokemon && pokemon.name && pokemon.id
+      );
+    } catch (error) {
+      console.warn('Browse failed:', error);
+      return []; // Return empty array on browse failure
+    }
   }
 
   async getTypeEffectiveness(types: string[]): Promise<{ weaknesses: string[]; strengths: string[]; immunities: string[]; resistances: string[] }> {
@@ -328,14 +394,35 @@ export class PokeAPI {
         timeout: 15000
       });
 
-      const result: GraphQLResponse<T> = JSON.parse(response);
+      if (!response || response.trim() === '') {
+        throw new Error('Empty response from GraphQL server');
+      }
+
+      let result: GraphQLResponse<T>;
+      try {
+        result = JSON.parse(response);
+      } catch (parseError) {
+        throw new Error(`Invalid JSON response from GraphQL server: ${response.substring(0, 200)}`);
+      }
 
       if (result.errors && result.errors.length > 0) {
-        throw new Error(`GraphQL Error: ${result.errors[0].message}`);
+        const error = result.errors[0];
+        // Handle specific GraphQL error types
+        if (error.message.includes('null value')) {
+          throw new Error(`GraphQL Error: Unexpected null value for type 'String'. Try getting another random pokemon.`);
+        }
+        throw new Error(`GraphQL Error: ${error.message}`);
+      }
+
+      if (!result.data) {
+        throw new Error('No data returned from GraphQL query');
       }
 
       return result.data;
     } catch (error) {
+      if (error instanceof Error && error.message.includes('GraphQL Error:')) {
+        throw error; // Re-throw GraphQL errors as-is
+      }
       throw new Error(`Failed to fetch Pokémon data: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
