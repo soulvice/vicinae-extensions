@@ -53,11 +53,16 @@ export class PokeAPI {
 
     // Better variable handling - separate string and ID search
     const isNumeric = !isNaN(Number(query));
-    const variables = {
-      search: isNumeric ? null : `%${query.toLowerCase()}%`,
-      searchId: isNumeric ? Number(query) : null,
-      limit
-    };
+    const variables: any = { limit };
+
+    // Only include the relevant search parameter to avoid null values
+    if (isNumeric) {
+      variables.searchId = Number(query);
+      variables.search = "%"; // Use a dummy pattern that won't match anything
+    } else {
+      variables.search = `%${query.toLowerCase()}%`;
+      variables.searchId = -1; // Use an ID that won't match anything
+    }
 
     try {
       const response = await this.executeGraphQLQuery<PokemonV2Response>(searchQuery, variables);

@@ -1,5 +1,5 @@
 import { List, ActionPanel, Action, Icon, showToast, Toast, Color } from "@vicinae/api";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   getStates,
   callService,
@@ -16,21 +16,54 @@ export default function Command() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
 
+  // Debounce WebSocket updates to prevent input interruption
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingUpdatesRef = useRef<Map<string, HAEntity>>(new Map());
+
+  const debouncedUpdateEntities = useCallback(() => {
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+
+    updateTimeoutRef.current = setTimeout(() => {
+      const updates = Array.from(pendingUpdatesRef.current.entries());
+      if (updates.length > 0) {
+        setEntities(prev => {
+          const newEntities = [...prev];
+          updates.forEach(([entityId, updatedEntity]) => {
+            const index = newEntities.findIndex(e => e.entity_id === entityId);
+            if (index !== -1) {
+              newEntities[index] = updatedEntity;
+            }
+          });
+          return newEntities;
+        });
+        pendingUpdatesRef.current.clear();
+      }
+    }, 200); // 200ms debounce to prevent input interruption
+  }, []);
+
   useEffect(() => {
     fetchEntities();
 
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates with debouncing
     const unsubscribe = subscribeToAllEntityUpdates((updatedEntity) => {
-      setEntities(prev => prev.map(entity =>
-        entity.entity_id === updatedEntity.entity_id ? updatedEntity : entity
-      ));
-      console.log(`Updated entity ${updatedEntity.entity_id} to state: ${updatedEntity.state}`);
+      // Queue the update instead of applying immediately
+      pendingUpdatesRef.current.set(updatedEntity.entity_id, updatedEntity);
+      debouncedUpdateEntities();
+      console.log(`Queued update for entity ${updatedEntity.entity_id} to state: ${updatedEntity.state}`);
     });
 
-    return unsubscribe;
-  }, []);
+    return () => {
+      unsubscribe();
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, [debouncedUpdateEntities]);
 
-  const fetchEntities = async () => {
+  // Memoized fetch function to prevent unnecessary re-creation
+  const fetchEntities = useCallback(async () => {
     try {
       setIsLoading(true);
       const states = await getStates();
@@ -44,7 +77,7 @@ export default function Command() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const toggleEntity = async (entity: HAEntity) => {
     try {
@@ -66,21 +99,20 @@ export default function Command() {
         message: getEntityName(entity),
       });
 
-      // Immediately get fresh state for this specific entity
+      // Update entity state using debounced method to prevent input interruption
       try {
         const freshEntity = await getFreshEntityState(entity.entity_id);
-        setEntities(prev => prev.map(e =>
-          e.entity_id === entity.entity_id ? freshEntity : e
-        ));
+        // Add to pending updates instead of immediate state update
+        pendingUpdatesRef.current.set(entity.entity_id, freshEntity);
+        debouncedUpdateEntities();
       } catch (error) {
         console.error(`Failed to get fresh state for ${entity.entity_id}:`, error);
+        // Only refresh all on error as fallback
+        setTimeout(async () => {
+          clearStatesCache();
+          await fetchEntities();
+        }, 500);
       }
-
-      // Also refresh the entire list after a short delay
-      setTimeout(async () => {
-        clearStatesCache();
-        await fetchEntities();
-      }, 1000);
     } catch (error) {
       await showToast({
         style: Toast.Style.Failure,
@@ -104,21 +136,20 @@ export default function Command() {
         message: getEntityName(entity),
       });
 
-      // Immediately get fresh state for this specific entity
+      // Update entity state using debounced method to prevent input interruption
       try {
         const freshEntity = await getFreshEntityState(entity.entity_id);
-        setEntities(prev => prev.map(e =>
-          e.entity_id === entity.entity_id ? freshEntity : e
-        ));
+        // Add to pending updates instead of immediate state update
+        pendingUpdatesRef.current.set(entity.entity_id, freshEntity);
+        debouncedUpdateEntities();
       } catch (error) {
         console.error(`Failed to get fresh state for ${entity.entity_id}:`, error);
+        // Only refresh all on error as fallback
+        setTimeout(async () => {
+          clearStatesCache();
+          await fetchEntities();
+        }, 500);
       }
-
-      // Also refresh the entire list after a short delay
-      setTimeout(async () => {
-        clearStatesCache();
-        await fetchEntities();
-      }, 1000);
     } catch (error) {
       await showToast({
         style: Toast.Style.Failure,
@@ -142,21 +173,20 @@ export default function Command() {
         message: getEntityName(entity),
       });
 
-      // Immediately get fresh state for this specific entity
+      // Update entity state using debounced method to prevent input interruption
       try {
         const freshEntity = await getFreshEntityState(entity.entity_id);
-        setEntities(prev => prev.map(e =>
-          e.entity_id === entity.entity_id ? freshEntity : e
-        ));
+        // Add to pending updates instead of immediate state update
+        pendingUpdatesRef.current.set(entity.entity_id, freshEntity);
+        debouncedUpdateEntities();
       } catch (error) {
         console.error(`Failed to get fresh state for ${entity.entity_id}:`, error);
+        // Only refresh all on error as fallback
+        setTimeout(async () => {
+          clearStatesCache();
+          await fetchEntities();
+        }, 500);
       }
-
-      // Also refresh the entire list after a short delay
-      setTimeout(async () => {
-        clearStatesCache();
-        await fetchEntities();
-      }, 1000);
     } catch (error) {
       await showToast({
         style: Toast.Style.Failure,
@@ -166,27 +196,34 @@ export default function Command() {
     }
   };
 
-  // Group entities by domain
-  const groupedEntities = entities.reduce((acc, entity) => {
-    const domain = getDomain(entity.entity_id);
-    if (!acc[domain]) {
-      acc[domain] = [];
-    }
-    acc[domain].push(entity);
-    return acc;
-  }, {} as Record<string, HAEntity[]>);
+  // Memoized grouping and filtering to prevent unnecessary re-computations
+  const filteredGroups = useMemo(() => {
+    // Group entities by domain
+    const groupedEntities = entities.reduce((acc, entity) => {
+      const domain = getDomain(entity.entity_id);
+      if (!acc[domain]) {
+        acc[domain] = [];
+      }
+      acc[domain].push(entity);
+      return acc;
+    }, {} as Record<string, HAEntity[]>);
 
-  // Filter based on search
-  const filteredGroups = Object.entries(groupedEntities).reduce((acc, [domain, entities]) => {
-    const filtered = entities.filter((entity) =>
-      getEntityName(entity).toLowerCase().includes(searchText.toLowerCase()) ||
-      entity.entity_id.toLowerCase().includes(searchText.toLowerCase())
-    );
-    if (filtered.length > 0) {
-      acc[domain] = filtered;
-    }
-    return acc;
-  }, {} as Record<string, HAEntity[]>);
+    // Filter based on search
+    const filtered = Object.entries(groupedEntities).reduce((acc, [domain, domainEntities]) => {
+      const filteredEntities = domainEntities.filter((entity) => {
+        const entityName = getEntityName(entity).toLowerCase();
+        const entityId = entity.entity_id.toLowerCase();
+        const search = searchText.toLowerCase();
+        return entityName.includes(search) || entityId.includes(search);
+      });
+      if (filteredEntities.length > 0) {
+        acc[domain] = filteredEntities;
+      }
+      return acc;
+    }, {} as Record<string, HAEntity[]>);
+
+    return filtered;
+  }, [entities, searchText]);
 
   const getStateIcon = (entity: HAEntity) => {
     if (entity.state === "on") return { source: Icon.CheckCircle, tintColor: Color.Green };
@@ -194,11 +231,16 @@ export default function Command() {
     return Icon.Circle;
   };
 
+  // Memoized search handler to prevent unnecessary re-renders
+  const handleSearchTextChange = useCallback((newSearchText: string) => {
+    setSearchText(newSearchText);
+  }, []);
+
   return (
     <List
       isLoading={isLoading}
       searchText={searchText}
-      onSearchTextChange={setSearchText}
+      onSearchTextChange={handleSearchTextChange}
       searchBarPlaceholder="Search entities..."
       navigationTitle="Home Assistant Entities"
     >
