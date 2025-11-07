@@ -1,178 +1,107 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "pokedex",
-  "title": "Pokédex",
-  "description": "Explore the world of Pokémon with stunning visuals and detailed information in Vicinae.",
-  "icon": "assets/icon.png",
-  "author": "anhthang",
-  "contributors": [
-    "miguel-felix1"
-  ],
+  "title": "Pokédex Viewer",
+  "description": "Browse and view detailed Pokémon information using PokéAPI GraphQL with split-view layout",
+  "icon": "extension_icon.png",
+  "author": "dadmin",
   "license": "MIT",
   "categories": [
-    "Data",
-    "Other",
-    "Fun"
+    "Entertainment",
+    "Reference"
   ],
   "commands": [
     {
+      "name": "browse",
+      "title": "Browse Pokédex",
+      "description": "Search and browse all Pokémon in the Pokédex",
+      "mode": "view"
+    },
+    {
       "name": "pokemon",
-      "title": "Pokémon",
-      "subtitle": "Pokédex",
-      "description": "A digital encyclopedia that provides information about Pokémon.",
+      "title": "View Pokémon Details",
+      "description": "View detailed information about a specific Pokémon",
       "mode": "view"
     },
     {
-      "name": "ability",
-      "title": "Abilities",
-      "subtitle": "Pokédex",
-      "description": "An Ability is a unique, passive trait that provides a special effect for a Pokémon, influencing its battle performance or interactions with the environment.",
+      "name": "search",
+      "title": "Search Pokémon",
+      "description": "Search for Pokémon by name, type, or Pokédex number",
       "mode": "view"
     },
     {
-      "name": "move",
-      "title": "Moves",
-      "subtitle": "Pokédex",
-      "description": "A move is a skill or attack that Pokémon use in battle, varying in type, power, accuracy, and additional effects.",
-      "mode": "view"
-    },
-    {
-      "name": "weakness",
-      "title": "Weaknesses",
-      "subtitle": "Pokédex",
-      "description": "Discover the types of moves that are particularly effective against a specific Pokémon.",
+      "name": "random",
+      "title": "Random Pokémon",
+      "description": "View a random Pokémon from the Pokédex",
       "mode": "view"
     }
   ],
   "preferences": [
     {
-      "name": "language",
-      "title": "Preferred Language",
-      "description": "Select your preferred language for Pokémon-related commands.",
-      "required": false,
+      "name": "generation",
+      "title": "Generation Filter",
+      "description": "Filter Pokémon by generation (leave empty for all)",
       "type": "dropdown",
-      "default": "9",
+      "default": "all",
       "data": [
-        {
-          "title": "Simplified Chinese",
-          "value": "12"
-        },
-        {
-          "title": "Traditional Chinese",
-          "value": "4"
-        },
-        {
-          "title": "English",
-          "value": "9"
-        },
-        {
-          "title": "French",
-          "value": "5"
-        },
-        {
-          "title": "German",
-          "value": "6"
-        },
-        {
-          "title": "Italian",
-          "value": "8"
-        },
-        {
-          "title": "Japanese",
-          "value": "1"
-        },
-        {
-          "title": "Korean",
-          "value": "3"
-        },
-        {
-          "title": "Spanish",
-          "value": "7"
-        }
+        { "title": "All Generations", "value": "all" },
+        { "title": "Generation I (Kanto)", "value": "1" },
+        { "title": "Generation II (Johto)", "value": "2" },
+        { "title": "Generation III (Hoenn)", "value": "3" },
+        { "title": "Generation IV (Sinnoh)", "value": "4" },
+        { "title": "Generation V (Unova)", "value": "5" },
+        { "title": "Generation VI (Kalos)", "value": "6" },
+        { "title": "Generation VII (Alola)", "value": "7" },
+        { "title": "Generation VIII (Galar)", "value": "8" },
+        { "title": "Generation IX (Paldea)", "value": "9" }
       ]
     },
     {
-      "name": "duration",
-      "title": "Data Cache Duration",
-      "description": "Set the duration for caching Pokémon details. A value of 0 disables caching.",
-      "required": false,
+      "name": "showShinySprites",
+      "title": "Show Shiny Sprites",
+      "description": "Display shiny versions of Pokémon sprites when available",
+      "type": "checkbox",
+      "default": false
+    },
+    {
+      "name": "preferredSpriteStyle",
+      "title": "Sprite Style",
+      "description": "Preferred sprite style for Pokémon images",
       "type": "dropdown",
-      "default": "7",
+      "default": "official_artwork",
       "data": [
-        {
-          "title": "No Caching",
-          "value": "0"
-        },
-        {
-          "title": "1 Day",
-          "value": "1"
-        },
-        {
-          "title": "3 Days",
-          "value": "3"
-        },
-        {
-          "title": "1 Week",
-          "value": "7"
-        },
-        {
-          "title": "2 Weeks",
-          "value": "14"
-        },
-        {
-          "title": "1 Month",
-          "value": "30"
-        }
+        { "title": "Official Artwork", "value": "official_artwork" },
+        { "title": "Home Sprites", "value": "home" },
+        { "title": "Dream World", "value": "dream_world" },
+        { "title": "Default Sprites", "value": "default" }
       ]
     },
     {
-      "name": "artwork",
-      "title": "Artwork Style",
-      "description": "Choose the preferred artwork style for Pokémon.",
-      "required": false,
-      "type": "dropdown",
-      "default": "official",
-      "data": [
-        {
-          "title": "Official Artwork",
-          "value": "official"
-        },
-        {
-          "title": "Pixel Art",
-          "value": "pixel"
-        }
-      ]
+      "name": "showMoveDetails",
+      "title": "Show Move Details",
+      "description": "Display detailed information about Pokémon moves",
+      "type": "checkbox",
+      "default": true
+    },
+    {
+      "name": "enableCaching",
+      "title": "Enable Caching",
+      "description": "Cache Pokémon data to improve performance",
+      "type": "checkbox",
+      "default": true
     }
   ],
   "dependencies": {
-    "@vicinae/api": "latest",
-    "axios": "^1.8.4",
-    "json2md": "^2.0.1",
-    "lodash.debounce": "^4.0.8",
-    "lodash.groupby": "^4.6.0",
-    "lodash.orderby": "^4.6.0",
-    "lodash.shuffle": "^4.2.0",
-    "lodash.uniqby": "^4.7.0"
+    "@vicinae/api": "latest"
   },
   "devDependencies": {
-    "@eslint/js": "^9.11.0",
-    "@types/json2md": "^1.5.4",
-    "@types/lodash.debounce": "^4.0.9",
-    "@types/lodash.groupby": "^4.6.9",
-    "@types/lodash.orderby": "^4.6.9",
-    "@types/lodash.shuffle": "^4.2.9",
-    "@types/lodash.uniqby": "^4.7.9",
-    "@types/node": "~22.5.5",
-    "@types/react": "^18.3.8",
-    "eslint": "^9.11.0",
-    "eslint-plugin-react": "^7.36.1",
-    "prettier": "^3.3.3",
-    "typescript": "^5.6.2",
-    "typescript-eslint": "^8.6.0"
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
   },
   "scripts": {
-    "build": "vici build -e dist",
-    "dev": "vici develop",
+    "build": "vici build",
+    "dev": "vici dev",
     "lint": "vici lint"
   }
 }

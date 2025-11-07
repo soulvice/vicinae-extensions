@@ -1,185 +1,272 @@
-// codes from https://raw.githubusercontent.com/chubin/wttr.in/master/lib/constants.py
+import { WeatherCondition } from "./types";
 
-export function getWeatherCodeIcon(weatherCode: string | undefined): string {
-  if (!weatherCode) {
-    return "";
+// Nerd Font weather icons mapping for wttr.in condition codes
+export const weatherConditions: Record<string, WeatherCondition> = {
+  // Clear/Sunny
+  "113": {
+    code: "113",
+    description: "Sunny",
+    icon: "☀️",
+    nerdIcon: "󰖙", // nf-md-weather_sunny
+  },
+  "116": {
+    code: "116",
+    description: "Partly cloudy",
+    icon: "⛅",
+    nerdIcon: "󰖕", // nf-md-weather_partly_cloudy
+  },
+
+  // Cloudy
+  "119": {
+    code: "119",
+    description: "Cloudy",
+    icon: "☁️",
+    nerdIcon: "󰖐", // nf-md-weather_cloudy
+  },
+  "122": {
+    code: "122",
+    description: "Overcast",
+    icon: "☁️",
+    nerdIcon: "󰖐", // nf-md-weather_cloudy
+  },
+
+  // Mist/Fog
+  "143": {
+    code: "143",
+    description: "Mist",
+    icon: "🌫️",
+    nerdIcon: "󰖑", // nf-md-weather_fog
+  },
+  "248": {
+    code: "248",
+    description: "Fog",
+    icon: "🌫️",
+    nerdIcon: "󰖑", // nf-md-weather_fog
+  },
+
+  // Light Rain
+  "176": {
+    code: "176",
+    description: "Patchy rain possible",
+    icon: "🌦️",
+    nerdIcon: "󰖗", // nf-md-weather_partly_rainy
+  },
+  "263": {
+    code: "263",
+    description: "Patchy light drizzle",
+    icon: "🌧️",
+    nerdIcon: "󰖒", // nf-md-weather_rainy
+  },
+  "266": {
+    code: "266",
+    description: "Light drizzle",
+    icon: "🌧️",
+    nerdIcon: "󰖒", // nf-md-weather_rainy
+  },
+  "293": {
+    code: "293",
+    description: "Patchy light rain",
+    icon: "🌧️",
+    nerdIcon: "󰖒", // nf-md-weather_rainy
+  },
+  "296": {
+    code: "296",
+    description: "Light rain",
+    icon: "🌧️",
+    nerdIcon: "󰖒", // nf-md-weather_rainy
+  },
+
+  // Moderate Rain
+  "299": {
+    code: "299",
+    description: "Moderate rain at times",
+    icon: "🌧️",
+    nerdIcon: "󰖖", // nf-md-weather_pouring
+  },
+  "302": {
+    code: "302",
+    description: "Moderate rain",
+    icon: "🌧️",
+    nerdIcon: "󰖖", // nf-md-weather_pouring
+  },
+
+  // Heavy Rain
+  "305": {
+    code: "305",
+    description: "Heavy rain at times",
+    icon: "🌧️",
+    nerdIcon: "󰖖", // nf-md-weather_pouring
+  },
+  "308": {
+    code: "308",
+    description: "Heavy rain",
+    icon: "🌧️",
+    nerdIcon: "󰖖", // nf-md-weather_pouring
+  },
+  "311": {
+    code: "311",
+    description: "Light freezing rain",
+    icon: "🌧️",
+    nerdIcon: "󰖖", // nf-md-weather_pouring
+  },
+  "314": {
+    code: "314",
+    description: "Moderate or heavy freezing rain",
+    icon: "🌧️",
+    nerdIcon: "󰖖", // nf-md-weather_pouring
+  },
+
+  // Snow
+  "179": {
+    code: "179",
+    description: "Patchy snow possible",
+    icon: "❄️",
+    nerdIcon: "󰖘", // nf-md-weather_snowy
+  },
+  "227": {
+    code: "227",
+    description: "Blowing snow",
+    icon: "🌨️",
+    nerdIcon: "󰼶", // nf-md-weather_snowy_heavy
+  },
+  "230": {
+    code: "230",
+    description: "Blizzard",
+    icon: "🌨️",
+    nerdIcon: "󰼶", // nf-md-weather_snowy_heavy
+  },
+  "323": {
+    code: "323",
+    description: "Patchy light snow",
+    icon: "🌨️",
+    nerdIcon: "󰖘", // nf-md-weather_snowy
+  },
+  "326": {
+    code: "326",
+    description: "Light snow",
+    icon: "🌨️",
+    nerdIcon: "󰖘", // nf-md-weather_snowy
+  },
+  "329": {
+    code: "329",
+    description: "Patchy moderate snow",
+    icon: "🌨️",
+    nerdIcon: "󰼶", // nf-md-weather_snowy_heavy
+  },
+  "332": {
+    code: "332",
+    description: "Moderate snow",
+    icon: "🌨️",
+    nerdIcon: "󰼶", // nf-md-weather_snowy_heavy
+  },
+  "335": {
+    code: "335",
+    description: "Patchy heavy snow",
+    icon: "🌨️",
+    nerdIcon: "󰼶", // nf-md-weather_snowy_heavy
+  },
+  "338": {
+    code: "338",
+    description: "Heavy snow",
+    icon: "🌨️",
+    nerdIcon: "󰼶", // nf-md-weather_snowy_heavy
+  },
+
+  // Sleet
+  "182": {
+    code: "182",
+    description: "Patchy sleet possible",
+    icon: "🌨️",
+    nerdIcon: "󰙿", // nf-md-weather_hail
+  },
+  "317": {
+    code: "317",
+    description: "Light sleet",
+    icon: "🌨️",
+    nerdIcon: "󰙿", // nf-md-weather_hail
+  },
+  "320": {
+    code: "320",
+    description: "Moderate or heavy sleet",
+    icon: "🌨️",
+    nerdIcon: "󰙿", // nf-md-weather_hail
+  },
+
+  // Thunder
+  "200": {
+    code: "200",
+    description: "Thundery outbreaks possible",
+    icon: "⛈️",
+    nerdIcon: "󰖓", // nf-md-weather_lightning
+  },
+  "386": {
+    code: "386",
+    description: "Patchy light rain with thunder",
+    icon: "⛈️",
+    nerdIcon: "󰖓", // nf-md-weather_lightning
+  },
+  "389": {
+    code: "389",
+    description: "Moderate or heavy rain with thunder",
+    icon: "⛈️",
+    nerdIcon: "󰖓", // nf-md-weather_lightning
+  },
+  "392": {
+    code: "392",
+    description: "Patchy light snow with thunder",
+    icon: "⛈️",
+    nerdIcon: "󰖓", // nf-md-weather_lightning
+  },
+  "395": {
+    code: "395",
+    description: "Moderate or heavy snow with thunder",
+    icon: "⛈️",
+    nerdIcon: "󰖓", // nf-md-weather_lightning
+  },
+};
+
+// Night time variations for clear/partly cloudy conditions
+export const nightConditions: Record<string, WeatherCondition> = {
+  "113": {
+    code: "113",
+    description: "Clear",
+    icon: "🌙",
+    nerdIcon: "󰖔", // nf-md-weather_night
+  },
+  "116": {
+    code: "116",
+    description: "Partly cloudy",
+    icon: "🌙",
+    nerdIcon: "󰼱", // nf-md-weather_night_partly_cloudy
+  },
+};
+
+export function getWeatherCondition(code: string, isNight = false): WeatherCondition {
+  // Use night variations for clear/partly cloudy if it's night time
+  if (isNight && nightConditions[code]) {
+    return nightConditions[code];
   }
-  const code = WWO_CODE[weatherCode] || "";
-  const ico = WEATHER_SYMBOL[code] || WEATHER_SYMBOL["Unknown"];
-  return ico;
+
+  // Return the condition or a default if not found
+  return weatherConditions[code] || {
+    code,
+    description: "Unknown",
+    icon: "❓",
+    nerdIcon: "󰼯", // nf-md-weather_cloudy_alert
+  };
 }
 
-export function getWindDirectionIcon(degree: string): string {
-  const deg = parseFloat(degree);
-  const windIndex = Math.floor(((deg + 22.5) % 360) / 45.0);
-  const wind_direction = WIND_DIRECTION[windIndex];
-  return wind_direction;
-}
+// Helper function to determine if it's night time based on current time and sunrise/sunset
+export function isNightTime(currentTime: string, sunrise?: string, sunset?: string): boolean {
+  if (!sunrise || !sunset) {
+    // Fallback: assume night between 6 PM and 6 AM
+    const hour = new Date(currentTime).getHours();
+    return hour >= 18 || hour < 6;
+  }
 
-export const WWO_CODE: { [key: string]: string } = {
-  "113": "Sunny",
-  "116": "PartlyCloudy",
-  "119": "Cloudy",
-  "122": "VeryCloudy",
-  "143": "Fog",
-  "176": "LightShowers",
-  "179": "LightSleetShowers",
-  "182": "LightSleet",
-  "185": "LightSleet",
-  "200": "ThunderyShowers",
-  "227": "LightSnow",
-  "230": "HeavySnow",
-  "248": "Fog",
-  "260": "Fog",
-  "263": "LightShowers",
-  "266": "LightRain",
-  "281": "LightSleet",
-  "284": "LightSleet",
-  "293": "LightRain",
-  "296": "LightRain",
-  "299": "HeavyShowers",
-  "302": "HeavyRain",
-  "305": "HeavyShowers",
-  "308": "HeavyRain",
-  "311": "LightSleet",
-  "314": "LightSleet",
-  "317": "LightSleet",
-  "320": "LightSnow",
-  "323": "LightSnowShowers",
-  "326": "LightSnowShowers",
-  "329": "HeavySnow",
-  "332": "HeavySnow",
-  "335": "HeavySnowShowers",
-  "338": "HeavySnow",
-  "350": "LightSleet",
-  "353": "LightShowers",
-  "356": "HeavyShowers",
-  "359": "HeavyRain",
-  "362": "LightSleetShowers",
-  "365": "LightSleetShowers",
-  "368": "LightSnowShowers",
-  "371": "HeavySnowShowers",
-  "374": "LightSleetShowers",
-  "377": "LightSleet",
-  "386": "ThunderyShowers",
-  "389": "ThunderyHeavyRain",
-  "392": "ThunderySnowShowers",
-  "395": "HeavySnowShowers",
-};
+  const current = new Date(currentTime);
+  const sunriseTime = new Date(`${current.toDateString()} ${sunrise}`);
+  const sunsetTime = new Date(`${current.toDateString()} ${sunset}`);
 
-export const WEATHER_SYMBOL: { [key: string]: string } = {
-  Unknown: "sparkles.svg",
-  Cloudy: "cloud.fog.svg",
-  Fog: "cloud.fog.svg",
-  HeavyRain: "cloud.heavyrain.svg",
-  HeavyShowers: "cloud.heavyrain.svg",
-  HeavySnow: "cloud.snow.svg",
-  HeavySnowShowers: "cloud.snow.svg",
-  LightRain: "cloud.rain.svg",
-  LightShowers: "cloud.rain.svg",
-  LightSleet: "cloud.sleet.svg",
-  LightSleetShowers: "cloud.sleet.svg",
-  LightSnow: "cloud.snow.svg",
-  LightSnowShowers: "cloud.snow.svg",
-  PartlyCloudy: "cloud.svg",
-  Sunny: "sun.max.svg",
-  ThunderyHeavyRain: "cloud.bolt.rain.svg",
-  ThunderyShowers: "cloud.bolt.rain.svg",
-  ThunderySnowShowers: "cloud.bolt.rain.svg",
-  VeryCloudy: "cloud.svg",
-};
-
-export const WIND_DIRECTION = ["↓", "↙", "←", "↖", "↑", "↗", "→", "↘"];
-
-export const LOCALE = {
-  af: "af_ZA",
-  ar: "ar_TN",
-  az: "az_AZ",
-  be: "be_BY",
-  bg: "bg_BG",
-  bs: "bs_BA",
-  ca: "ca_ES",
-  cs: "cs_CZ",
-  cy: "cy_GB",
-  da: "da_DK",
-  de: "de_DE",
-  el: "el_GR",
-  eo: "eo",
-  es: "es_ES",
-  et: "et_EE",
-  fa: "fa_IR",
-  fi: "fi_FI",
-  fr: "fr_FR",
-  fy: "fy_NL",
-  ga: "ga_IE",
-  he: "he_IL",
-  hr: "hr_HR",
-  hu: "hu_HU",
-  hy: "hy_AM",
-  ia: "ia",
-  id: "id_ID",
-  is: "is_IS",
-  it: "it_IT",
-  ja: "ja_JP",
-  jv: "en_US",
-  ka: "ka_GE",
-  ko: "ko_KR",
-  kk: "kk_KZ",
-  ky: "ky_KG",
-  lt: "lt_LT",
-  lv: "lv_LV",
-  mk: "mk_MK",
-  ml: "ml_IN",
-  nb: "nb_NO",
-  nl: "nl_NL",
-  nn: "nn_NO",
-  pt: "pt_PT",
-  "pt-br": "pt_BR",
-  pl: "pl_PL",
-  ro: "ro_RO",
-  ru: "ru_RU",
-  sv: "sv_SE",
-  sk: "sk_SK",
-  sl: "sl_SI",
-  sr: "sr_RS",
-  "sr-lat": "sr_RS@latin",
-  sw: "sw_KE",
-  th: "th_TH",
-  tr: "tr_TR",
-  uk: "uk_UA",
-  uz: "uz_UZ",
-  vi: "vi_VN",
-  zh: "zh_TW",
-  zu: "zu_ZA",
-};
-
-export enum WeatherIcons {
-  Area = "building.2.svg",
-  ArrowDown = "arrow.down.svg",
-  ArrowUp = "arrow.up.svg",
-  Cloud = "cloud.svg",
-  Coordinates = "mappin.svg",
-  Country = "map.svg",
-  FeelsLike = "thermometer.variable.and.figure.svg",
-  Fetched = "square.and.arrow.down.svg",
-  Humidity = "humidity.svg",
-  Pressure = "barometer.svg",
-  Moon = "moon.svg",
-  Moonrise = "moonrise.svg",
-  Moonset = "moonset.svg",
-  Observation = "clock.svg",
-  Rain = "drop.svg",
-  Region = "mappin.and.ellipse.svg",
-  Settings = "gear.svg",
-  Snow = "snowflake.svg",
-  Source = "link.svg",
-  Sun = "sun.max.svg",
-  SunHours = "clock.svg",
-  Sunrise = "sunrise.svg",
-  Sunset = "sunset.svg",
-  Temperature = "thermometer.medium.svg",
-  Thunder = "bolt.svg",
-  UVIndex = "rays.svg",
-  Visibility = "eye.svg",
-  Wind = "wind.svg",
+  return current < sunriseTime || current > sunsetTime;
 }

@@ -1,104 +1,97 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "weather",
-  "title": "Weather",
-  "version": "0.3.0",
-  "description": "Weather forecast via wttr.in",
-  "icon": "weather.png",
-  "author": "tonka3000",
-  "contributors": [
-    "xilopaint"
-  ],
+  "title": "Weather Forecast",
+  "description": "Get current weather conditions and multi-day forecasts using wttr.in with location discovery and caching",
+  "icon": "extension_icon.png",
+  "author": "dadmin",
   "license": "MIT",
+  "categories": [
+    "Productivity",
+    "Information"
+  ],
   "commands": [
     {
-      "name": "index",
-      "title": "Weather",
-      "description": "Weather forecast via wttr.in",
+      "name": "forecast",
+      "title": "Weather Forecast",
+      "description": "View 3-5 day weather forecast with current conditions",
       "mode": "view"
     },
     {
-      "name": "menubar",
-      "title": "Weather Menu Bar",
-      "description": "Show weather in menu bar",
-      "mode": "menu-bar",
-      "interval": "30m",
-      "preferences": [
-        {
-          "name": "showmenuicon",
-          "description": "Show Icon",
-          "type": "checkbox",
-          "required": false,
-          "title": "Appearance",
-          "label": "Show Icon",
-          "default": true
-        },
-        {
-          "name": "showmenutext",
-          "description": "Show Text",
-          "type": "checkbox",
-          "required": false,
-          "label": "Show Text",
-          "default": true
-        }
-      ]
+      "name": "current",
+      "title": "Current Weather",
+      "description": "View current weather conditions",
+      "mode": "view"
+    },
+    {
+      "name": "settings",
+      "title": "Weather Settings",
+      "description": "Configure weather location, discovery mode, and caching preferences",
+      "mode": "view"
     }
   ],
   "preferences": [
     {
-      "name": "unitsystem",
+      "name": "location",
+      "title": "Location",
+      "description": "Weather location (city name, coordinates, or empty for auto-detection)",
+      "type": "textfield",
+      "default": "",
+      "placeholder": "London, UK or 40.7128,-74.0060 or auto"
+    },
+    {
+      "name": "discoveryMode",
+      "title": "Location Discovery",
+      "description": "How to determine location when not specified",
       "type": "dropdown",
-      "title": "Unit System",
-      "required": false,
-      "default": "metric",
-      "description": "Unit System",
+      "default": "auto",
       "data": [
-        {
-          "title": "Metric System",
-          "value": "metric"
-        },
-        {
-          "title": "Imperial Units",
-          "value": "imperial"
-        }
+        { "title": "Automatic", "value": "auto" },
+        { "title": "Manual", "value": "manual" }
       ]
     },
     {
-      "name": "defaultquery",
-      "type": "textfield",
-      "title": "Default query",
-      "placeholder": "Empty or location (e.g. London)",
-      "required": false,
-      "default": "",
-      "description": "Default query when search bar is empty. Same content as in the search bar."
+      "name": "enableCaching",
+      "title": "Enable Caching",
+      "description": "Cache weather data to reduce API calls and improve performance",
+      "type": "checkbox",
+      "default": true
     },
     {
-      "name": "clockformat",
-      "description": "Clock Format",
+      "name": "cacheTimeout",
+      "title": "Cache Timeout (minutes)",
+      "description": "How long to cache weather data before refreshing",
+      "type": "textfield",
+      "default": "30",
+      "placeholder": "30"
+    },
+    {
+      "name": "forecastDays",
+      "title": "Forecast Days",
+      "description": "Number of forecast days to display",
       "type": "dropdown",
-      "title": "Clock Format",
-      "default": "12h",
-      "required": false,
+      "default": "3",
       "data": [
-        {
-          "title": "12 Hours",
-          "value": "12h"
-        },
-        {
-          "title": "24 Hours",
-          "value": "24h"
-        }
+        { "title": "3 days", "value": "3" },
+        { "title": "5 days", "value": "5" }
+      ]
+    },
+    {
+      "name": "units",
+      "title": "Temperature Units",
+      "description": "Temperature display units",
+      "type": "dropdown",
+      "default": "metric",
+      "data": [
+        { "title": "Metric (°C)", "value": "metric" },
+        { "title": "Imperial (°F)", "value": "imperial" }
       ]
     }
   ],
   "dependencies": {
-    "@vicinae/api": "latest",
-    "cross-fetch": "^4.0.0",
-    "javascript-time-ago": "^2.5.9",
-    "moment": "^2.29.1"
+    "@vicinae/api": "latest"
   },
   "devDependencies": {
-    "@types/moment": "^2.13.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
     "typescript": "^5.0.0"
