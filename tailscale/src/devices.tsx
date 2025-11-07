@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ActionPanel, Action, List, showToast, Toast, getPreferenceValues, Color, Icon } from "@vicinae/api";
-import { exec } from "child_process";
-import { promisify } from "util";
-
-const execAsync = promisify(exec);
+import { execSync } from "child_process";
 
 interface TailscaleDevice {
   id: string;
@@ -47,10 +44,6 @@ export default function Command() {
     setShowingDetail(!showingDetail);
   }, [showingDetail]);
 
-  const getTailscalePath = () => {
-    return preferences.tailscalePath || "/Applications/Tailscale.app/Contents/MacOS/Tailscale";
-  };
-
   const formatLastSeen = (lastSeenStr: string): string => {
     if (!lastSeenStr) return "Never";
 
@@ -76,10 +69,17 @@ export default function Command() {
   const fetchDevices = async () => {
     try {
       setIsLoading(true);
-      const tailscalePath = getTailscalePath();
 
-      // Execute tailscale status --json
-      const { stdout } = await execAsync(`"${tailscalePath}" status --json`);
+      const tailscalePath = preferences.tailscalePath || "tailscale";
+      // Execute tailscale status --json using nushell like other commands
+      const stdout = await new Promise<string>((resolve, reject) => {
+        try {
+          const result = execSync(`nu -c '${tailscalePath} status --json'`, { encoding: "utf-8" });
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
       const status: TailscaleStatus = JSON.parse(stdout);
 
       const deviceList: TailscaleDevice[] = [];

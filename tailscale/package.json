@@ -48,6 +48,16 @@
       "mode": "view"
     }
   ],
+  "preferences": [
+    {
+      "name": "tailscalePath",
+      "title": "Tailscale Path",
+      "description": "Custom path to Tailscale binary (leave empty for default)",
+      "type": "textfield",
+      "default": "",
+      "placeholder": "tailscale"
+    }
+  ],
   "dependencies": {
     "@vicinae/api": "latest"
   },

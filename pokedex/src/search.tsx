@@ -18,15 +18,19 @@ export default function Command() {
   }, [showingDetail]);
 
   useEffect(() => {
-    if (searchText.length > 0) {
-      performSearch(searchText);
-    } else {
-      setPokemon([]);
-      setError(null);
-    }
-  }, [searchText]);
+    const timeoutId = setTimeout(() => {
+      if (searchText.length > 0 && !isLoading) {
+        performSearch(searchText);
+      } else if (searchText.length === 0) {
+        setPokemon([]);
+        setError(null);
+      }
+    }, 300); // 300ms debounce
 
-  const performSearch = async (query: string) => {
+    return () => clearTimeout(timeoutId);
+  }, [searchText, isLoading, performSearch]);
+
+  const performSearch = useCallback(async (query: string) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -43,7 +47,7 @@ export default function Command() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [pokeAPI]);
 
   const getTypeEmoji = (typeName: string): string => {
     const typeEmojis: Record<string, string> = {
