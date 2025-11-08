@@ -406,3 +406,22 @@ export interface TypeEffectivenessChart {
     [defendingType: string]: number; // 0, 0.5, 1, or 2
   };
 }
+
+// Type Dropdown and Filtering
+export interface TypeOption {
+  label: string;
+  value: string;
+  emoji?: string;
+}
+
+export interface FilterState {
+  selectedType: string;
+  selectedGeneration?: string;
+}
+
+// Generation grouping for Grid layout
+export interface GenerationGroup {
+  generation: number;
+  title: string;
+  pokemon: PokemonV2[];
+}

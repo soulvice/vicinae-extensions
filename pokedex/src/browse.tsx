@@ -1,7 +1,8 @@
-import { List, ActionPanel, Action, Icon, getPreferenceValues, Color } from "@vicinae/api";
+import { Grid, ActionPanel, Action, Icon, getPreferenceValues, Color } from "@vicinae/api";
 import React, { useState, useEffect, useCallback } from "react";
 import { PokeAPI } from "./api";
-import { PokemonV2, PokedexPreferences } from "./types";
+import { PokemonV2, PokedexPreferences, GenerationGroup } from "./types";
+import TypeDropdown from "./components/type_dropdown";
 
 export default function Command() {
   const [pokemon, setPokemon] = useState<PokemonV2[]>([]);
@@ -9,6 +10,7 @@ export default function Command() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedType, setSelectedType] = useState<string>("all");
   const [showingDetail, setShowingDetail] = useState(true);
 
   const preferences = getPreferenceValues<PokedexPreferences>();
@@ -22,7 +24,7 @@ export default function Command() {
 
   useEffect(() => {
     loadPokemon(0, true);
-  }, [preferences.generation]);
+  }, [preferences.generation, selectedType]);
 
   const loadPokemon = async (pageNumber = 0, reset = false) => {
     try {
@@ -30,7 +32,7 @@ export default function Command() {
       setError(null);
 
       const offset = pageNumber * ITEMS_PER_PAGE;
-      const newPokemon = await pokeAPI.browsePokemon(offset, ITEMS_PER_PAGE);
+      const newPokemon = await pokeAPI.browsePokemon(offset, ITEMS_PER_PAGE, selectedType);
 
       if (reset) {
         setPokemon(newPokemon);
@@ -112,18 +114,38 @@ export default function Command() {
 
   const getGenerationName = (genId: number): string => {
     const generations: Record<number, string> = {
-      1: "Kanto",
-      2: "Johto",
-      3: "Hoenn",
-      4: "Sinnoh",
-      5: "Unova",
-      6: "Kalos",
-      7: "Alola",
-      8: "Galar",
-      9: "Paldea"
+      1: "Generation I - Kanto",
+      2: "Generation II - Johto",
+      3: "Generation III - Hoenn",
+      4: "Generation IV - Sinnoh",
+      5: "Generation V - Unova",
+      6: "Generation VI - Kalos",
+      7: "Generation VII - Alola",
+      8: "Generation VIII - Galar",
+      9: "Generation IX - Paldea"
     };
 
-    return generations[genId] || `Gen ${genId}`;
+    return generations[genId] || `Generation ${genId}`;
+  };
+
+  const groupPokemonByGeneration = (pokemonList: PokemonV2[]): GenerationGroup[] => {
+    const grouped: { [key: number]: PokemonV2[] } = {};
+
+    pokemonList.forEach(poke => {
+      const genId = poke.pokemon_v2_pokemonspecy?.pokemon_v2_generation?.id || 0;
+      if (!grouped[genId]) {
+        grouped[genId] = [];
+      }
+      grouped[genId].push(poke);
+    });
+
+    return Object.entries(grouped)
+      .map(([genId, pokeList]) => ({
+        generation: parseInt(genId),
+        title: getGenerationName(parseInt(genId)),
+        pokemon: pokeList.sort((a, b) => a.id - b.id)
+      }))
+      .sort((a, b) => a.generation - b.generation);
   };
 
   // Pokemon detail component
@@ -153,18 +175,18 @@ export default function Command() {
       });
 
     return (
-      <List.Item.Detail
+      <Grid.Item.Detail
         metadata={
-          <List.Item.Detail.Metadata>
-            <List.Item.Detail.Metadata.Label title="Name" text={formatPokemonName(poke.name)} />
-            <List.Item.Detail.Metadata.Label title="Pokedex #" text={`#${poke.id.toString().padStart(3, "0")}`} />
-            <List.Item.Detail.Metadata.Separator />
+          <Grid.Item.Detail.Metadata>
+            <Grid.Item.Detail.Metadata.Label title="Name" text={formatPokemonName(poke.name)} />
+            <Grid.Item.Detail.Metadata.Label title="Pokedex #" text={`#${poke.id.toString().padStart(3, "0")}`} />
+            <Grid.Item.Detail.Metadata.Separator />
 
-            <List.Item.Detail.Metadata.Label title="Type(s)" text={types.map(type =>
+            <Grid.Item.Detail.Metadata.Label title="Type(s)" text={types.map(type =>
               `${getTypeEmoji(type)} ${type.toUpperCase()}`).join("  ")} />
 
             {generation && (
-              <List.Item.Detail.Metadata.Label
+              <Grid.Item.Detail.Metadata.Label
                 title="Generation"
                 text={getGenerationName(generation.id)}
                 icon={{
@@ -175,7 +197,7 @@ export default function Command() {
             )}
 
             {poke.height != null && (
-              <List.Item.Detail.Metadata.Label
+              <Grid.Item.Detail.Metadata.Label
                 title="Height"
                 text={`${(poke.height / 10).toFixed(1)} m`}
                 icon={{
@@ -185,7 +207,7 @@ export default function Command() {
               />
             )}
             {poke.weight != null && (
-              <List.Item.Detail.Metadata.Label
+              <Grid.Item.Detail.Metadata.Label
                 title="Weight"
                 text={`${(poke.weight / 10).toFixed(1)} kg`}
                 icon={{
@@ -197,42 +219,46 @@ export default function Command() {
 
             {(hp !== null || attack !== null || defense !== null || speed !== null) && (
               <>
-                <List.Item.Detail.Metadata.Separator />
-                <List.Item.Detail.Metadata.Label title="Base Stats" />
-                {hp !== null && <List.Item.Detail.Metadata.Label title="HP" text={hp.toString()} />}
-                {attack !== null && <List.Item.Detail.Metadata.Label title="Attack" text={attack.toString()} />}
-                {defense !== null && <List.Item.Detail.Metadata.Label title="Defense" text={defense.toString()} />}
-                {speed !== null && <List.Item.Detail.Metadata.Label title="Speed" text={speed.toString()} />}
+                <Grid.Item.Detail.Metadata.Separator />
+                <Grid.Item.Detail.Metadata.Label title="Base Stats" />
+                {hp !== null && <Grid.Item.Detail.Metadata.Label title="HP" text={hp.toString()} />}
+                {attack !== null && <Grid.Item.Detail.Metadata.Label title="Attack" text={attack.toString()} />}
+                {defense !== null && <Grid.Item.Detail.Metadata.Label title="Defense" text={defense.toString()} />}
+                {speed !== null && <Grid.Item.Detail.Metadata.Label title="Speed" text={speed.toString()} />}
               </>
             )}
 
             {abilities.length > 0 && (
               <>
-                <List.Item.Detail.Metadata.Separator />
-                <List.Item.Detail.Metadata.Label title="Abilities" text={abilities.join(", ")} />
+                <Grid.Item.Detail.Metadata.Separator />
+                <Grid.Item.Detail.Metadata.Label title="Abilities" text={abilities.join(", ")} />
               </>
             )}
 
-            <List.Item.Detail.Metadata.Separator />
+            <Grid.Item.Detail.Metadata.Separator />
 
-            <List.Item.Detail.Metadata.Label title="Description" text={flavorText} />
-          </List.Item.Detail.Metadata>
+            <Grid.Item.Detail.Metadata.Label title="Description" text={flavorText} />
+          </Grid.Item.Detail.Metadata>
         }
       />
     );
   };
 
+  const generationGroups = groupPokemonByGeneration(pokemon);
+
   return (
-    <List
+    <Grid
+      columns={4}
       isLoading={isLoading}
       searchBarPlaceholder="Search Pokemon by name or number..."
       filtering={false}
       isShowingDetail={showingDetail}
+      searchBarAccessory={<TypeDropdown type="grid" command="Pokemon" onSelectType={setSelectedType} />}
       onSearchTextChange={(searchText) => {
         if (searchText.length > 2) {
           // Implement search functionality
           setIsLoading(true);
-          pokeAPI.searchPokemon(searchText, 20)
+          pokeAPI.searchPokemon(searchText, 20, selectedType)
             .then(results => {
               setPokemon(results);
               setHasMore(false);
@@ -271,10 +297,10 @@ export default function Command() {
       }
     >
       {error ? (
-        <List.Item
+        <Grid.Item
+          content={Icon.ExclamationMark}
           title="Error"
           subtitle={error}
-          icon={Icon.ExclamationMark}
           actions={
             <ActionPanel>
               <Action
@@ -287,108 +313,105 @@ export default function Command() {
         />
       ) : (
         <>
-          {pokemon.map((poke) => {
-            const types = poke.pokemon_v2_pokemontypes.map(t => t.pokemon_v2_type.name);
-            const primaryType = types[0];
-            const typeString = types.map(type => `${getTypeEmoji(type)} ${type.toUpperCase()}`).join(" • ");
-            const generation = poke.pokemon_v2_pokemonspecy?.pokemon_v2_generation;
+          {generationGroups.map((group) => (
+            <Grid.Section key={group.generation} title={group.title}>
+              {group.pokemon.map((poke) => {
+                const types = poke.pokemon_v2_pokemontypes.map(t => t.pokemon_v2_type.name);
+                const primaryType = types[0];
 
-            return (
-              <List.Item
-                key={poke.id}
-                title={formatPokemonName(poke.name)}
-                subtitle={`#${poke.id.toString().padStart(3, "0")} • ${typeString}`}
-                accessories={!showingDetail ? [
-                  {
-                    text: generation ? getGenerationName(generation.id) : "Unknown",
-                    icon: {
-                      source: Icon.Globe,
-                      tintColor: getTypeColor(primaryType),
+                return (
+                  <Grid.Item
+                    key={poke.id}
+                    content={{
+                      source: pokeAPI.getPokemonSpriteUrl(poke),
+                      fallback: {
+                        source: Icon.QuestionMark,
+                        tintColor: getTypeColor(primaryType),
+                      }
+                    }}
+                    title={formatPokemonName(poke.name)}
+                    subtitle={`#${poke.id.toString().padStart(3, "0")}`}
+                    keywords={[poke.id.toString(), poke.name, ...types]}
+                    detail={showingDetail ? <PokemonDetail pokemon={poke} /> : undefined}
+                    actions={
+                      <ActionPanel>
+                        <Action
+                          title={showingDetail ? "Hide Details" : "Show Details"}
+                          icon={showingDetail ? Icon.EyeDisabled : Icon.Eye}
+                          onAction={toggleDetails}
+                          shortcut={{ modifiers: ["cmd"], key: "i" }}
+                        />
+                        <ActionPanel.Section title="External Links">
+                          <Action.OpenInBrowser
+                            title="View on Pokemon Database"
+                            icon={Icon.Globe}
+                            url={`https://pokemondb.net/pokedex/${poke.name}`}
+                            shortcut={{ modifiers: ["cmd"], key: "d" }}
+                          />
+                          <Action.OpenInBrowser
+                            title="View on Bulbapedia"
+                            icon={Icon.Book}
+                            url={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(poke.name).replace(" ", "_")}_(Pokemon)`}
+                            shortcut={{ modifiers: ["cmd"], key: "b" }}
+                          />
+                        </ActionPanel.Section>
+                        <ActionPanel.Section title="Copy">
+                          <Action.CopyToClipboard
+                            title="Copy Name"
+                            icon={Icon.Clipboard}
+                            content={formatPokemonName(poke.name)}
+                            shortcut={{ modifiers: ["cmd"], key: "c" }}
+                          />
+                          <Action.CopyToClipboard
+                            title="Copy Pokedex Info"
+                            icon={Icon.Clipboard}
+                            content={`#${poke.id} ${formatPokemonName(poke.name)} - ${types.join("/")}`}
+                            shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                          />
+                        </ActionPanel.Section>
+                        <ActionPanel.Section title="Filter">
+                          <Action
+                            title={`Filter ${primaryType.charAt(0).toUpperCase() + primaryType.slice(1)} Types`}
+                            icon={Icon.MagnifyingGlass}
+                            onAction={() => {
+                              setSelectedType(primaryType);
+                            }}
+                          />
+                          <Action
+                            title="Clear Filter"
+                            icon={Icon.XMark}
+                            onAction={() => {
+                              setSelectedType("all");
+                            }}
+                          />
+                        </ActionPanel.Section>
+                        <ActionPanel.Section title="Actions">
+                          <Action
+                            title="Random Pokemon"
+                            icon={Icon.Shuffle}
+                            shortcut={{ modifiers: ["cmd"], key: "r" }}
+                            onAction={() => {
+                              pokeAPI.getRandomPokemon()
+                                .then(randomPoke => {
+                                  console.log(`Random Pokemon: ${randomPoke.name}`);
+                                })
+                                .catch(console.error);
+                            }}
+                          />
+                        </ActionPanel.Section>
+                      </ActionPanel>
                     }
-                  },
-                  ...(poke.height != null && poke.weight != null ? [{
-                    text: `${(poke.height / 10).toFixed(1)}m, ${(poke.weight / 10).toFixed(1)}kg`,
-                    icon: {
-                      source: Icon.BarChart,
-                      tintColor: Color.Secondary,
-                    }
-                  }] : []),
-                ] : undefined}
-                icon={{
-                  source: pokeAPI.getPokemonSpriteUrl(poke),
-                  fallback: {
-                    source: Icon.QuestionMark,
-                    tintColor: getTypeColor(primaryType),
-                  }
-                }}
-                detail={showingDetail ? <PokemonDetail pokemon={poke} /> : undefined}
-                actions={
-                  <ActionPanel>
-                    <Action
-                      title={showingDetail ? "Hide Details" : "Show Details"}
-                      icon={showingDetail ? Icon.EyeDisabled : Icon.Eye}
-                      onAction={toggleDetails}
-                      shortcut={{ modifiers: ["cmd"], key: "i" }}
-                    />
-                    <ActionPanel.Section title="External Links">
-                      <Action.OpenInBrowser
-                        title="View on Pokemon Database"
-                        icon={Icon.Globe}
-                        url={`https://pokemondb.net/pokedex/${poke.name}`}
-                        shortcut={{ modifiers: ["cmd"], key: "d" }}
-                      />
-                      <Action.OpenInBrowser
-                        title="View on Bulbapedia"
-                        icon={Icon.Book}
-                        url={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(poke.name).replace(" ", "_")}_(Pokemon)`}
-                        shortcut={{ modifiers: ["cmd"], key: "b" }}
-                      />
-                    </ActionPanel.Section>
-                    <ActionPanel.Section title="Copy">
-                      <Action.CopyToClipboard
-                        title="Copy Name"
-                        icon={Icon.Clipboard}
-                        content={formatPokemonName(poke.name)}
-                        shortcut={{ modifiers: ["cmd"], key: "c" }}
-                      />
-                      <Action.CopyToClipboard
-                        title="Copy Pokedex Info"
-                        icon={Icon.Clipboard}
-                        content={`#${poke.id} ${formatPokemonName(poke.name)} - ${types.join("/")}`}
-                        shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                      />
-                    </ActionPanel.Section>
-                    <ActionPanel.Section title="Search">
-                      <Action
-                        title={`Search ${primaryType.toUpperCase()} Types`}
-                        icon={Icon.MagnifyingGlass}
-                        onAction={() => {
-                          console.log(`Search for ${primaryType} type Pokemon`);
-                        }}
-                      />
-                      <Action
-                        title="Random Pokemon"
-                        icon={Icon.Shuffle}
-                        shortcut={{ modifiers: ["cmd"], key: "r" }}
-                        onAction={() => {
-                          pokeAPI.getRandomPokemon()
-                            .then(randomPoke => {
-                              console.log(`Random Pokemon: ${randomPoke.name}`);
-                            })
-                            .catch(console.error);
-                        }}
-                      />
-                    </ActionPanel.Section>
-                  </ActionPanel>
-                }
-              />
-            );
-          })}
+                  />
+                );
+              })}
+            </Grid.Section>
+          ))}
 
           {hasMore && !isLoading && (
-            <List.Item
+            <Grid.Item
+              content={Icon.Plus}
               title="Load More Pokemon"
-              icon={Icon.Plus}
+              subtitle="Click to load more"
               actions={
                 <ActionPanel>
                   <Action
@@ -402,6 +425,6 @@ export default function Command() {
           )}
         </>
       )}
-    </List>
+    </Grid>
   );
 }

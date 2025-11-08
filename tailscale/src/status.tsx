@@ -32,9 +32,25 @@ export default function Command() {
 
       const statusData = JSON.parse(statusOutput);
 
+      // Helper function to get display hostname
+      const getDisplayHostname = (hostname: string, dnsName: string, magicDnsSuffix: string): string => {
+        if (hostname === "localhost" && dnsName && magicDnsSuffix) {
+          // Remove the trailing dot from DNSName if present
+          const cleanDnsName = dnsName.endsWith('.') ? dnsName.slice(0, -1) : dnsName;
+          // Remove the MagicDNS suffix to get just the hostname part
+          if (cleanDnsName.endsWith(magicDnsSuffix)) {
+            return cleanDnsName.substring(0, cleanDnsName.length - magicDnsSuffix.length - 1); // -1 for the dot
+          }
+        }
+        return hostname;
+      };
+
       // Parse the status
       const connected = statusData.BackendState === "Running";
-      const hostname = statusData.Self?.HostName || "Unknown";
+      const rawHostname = statusData.Self?.HostName || "Unknown";
+      const dnsName = statusData.Self?.DNSName || "";
+      const magicDnsSuffix = statusData.MagicDNSSuffix || "";
+      const hostname = getDisplayHostname(rawHostname, dnsName, magicDnsSuffix);
       const tailscaleIP = statusData.Self?.TailscaleIPs?.[0] || "N/A";
       const exitNode = statusData.ExitNodeStatus?.TailscaleIPs?.[0] || "None";
       const peers = Object.keys(statusData.Peer || {}).length;

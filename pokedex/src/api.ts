@@ -5,7 +5,8 @@ import {
   GraphQLResponse,
   CachedPokemonData,
   PokedexPreferences,
-  TypeEffectivenessChart
+  TypeEffectivenessChart,
+  TypeOption
 } from "./types";
 
 export class PokeAPI {
@@ -15,15 +16,29 @@ export class PokeAPI {
 
   constructor(private preferences: PokedexPreferences) {}
 
-  async searchPokemon(query: string, limit = 20): Promise<PokemonV2[]> {
+  async searchPokemon(query: string, limit = 20, typeFilter?: string): Promise<PokemonV2[]> {
+    let whereConditions = `_or: [
+      { name: { _ilike: $search } },
+      { id: { _eq: $searchId } }
+    ]`;
+
+    if (typeFilter && typeFilter !== "all") {
+      whereConditions = `_and: [
+        {
+          _or: [
+            { name: { _ilike: $search } },
+            { id: { _eq: $searchId } }
+          ]
+        },
+        { pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _eq: "${typeFilter}" } } } }
+      ]`;
+    }
+
     const searchQuery = `
       query SearchPokemon($search: String, $searchId: Int, $limit: Int!) {
         pokemon_v2_pokemon(
           where: {
-            _or: [
-              { name: { _ilike: $search } },
-              { id: { _eq: $searchId } }
-            ]
+            ${whereConditions}
           },
           limit: $limit,
           order_by: { id: asc }
@@ -271,13 +286,21 @@ export class PokeAPI {
     throw new Error("Failed to get random Pokemon");
   }
 
-  async browsePokemon(offset = 0, limit = 50): Promise<PokemonV2[]> {
-    let whereClause = "";
+  async browsePokemon(offset = 0, limit = 50, typeFilter?: string): Promise<PokemonV2[]> {
+    let whereConditions: string[] = [];
 
     if (this.preferences.generation !== "all") {
       const genId = parseInt(this.preferences.generation);
-      whereClause = `where: { pokemon_v2_pokemonspecy: { pokemon_v2_generation: { id: { _eq: ${genId} } } } }`;
+      whereConditions.push(`pokemon_v2_pokemonspecy: { pokemon_v2_generation: { id: { _eq: ${genId} } } }`);
     }
+
+    if (typeFilter && typeFilter !== "all") {
+      whereConditions.push(`pokemon_v2_pokemontypes: { pokemon_v2_type: { name: { _eq: "${typeFilter}" } } }`);
+    }
+
+    const whereClause = whereConditions.length > 0
+      ? `where: { ${whereConditions.join(", ")} }`
+      : "";
 
     const query = `
       query BrowsePokemon($offset: Int!, $limit: Int!) {
@@ -498,6 +521,39 @@ export class PokeAPI {
     } catch (error) {
       console.warn("Failed to clear cache:", error);
     }
+  }
+
+  getAllTypes(): TypeOption[] {
+    const typeEmojis: { [key: string]: string } = {
+      normal: "⚪",
+      fire: "🔥",
+      water: "💧",
+      electric: "⚡",
+      grass: "🌿",
+      ice: "🧊",
+      fighting: "👊",
+      poison: "☠️",
+      ground: "🌍",
+      flying: "🕊️",
+      psychic: "🔮",
+      bug: "🐛",
+      rock: "🪨",
+      ghost: "👻",
+      dragon: "🐉",
+      dark: "🌑",
+      steel: "⚙️",
+      fairy: "🧚"
+    };
+
+    const allOption: TypeOption = { label: "All Types", value: "all" };
+
+    const typeOptions: TypeOption[] = Object.entries(typeEmojis).map(([type, emoji]) => ({
+      label: `${emoji} ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+      value: type,
+      emoji
+    }));
+
+    return [allOption, ...typeOptions.sort((a, b) => a.label.localeCompare(b.label))];
   }
 
   private getTypeEffectivenessChart(): TypeEffectivenessChart {

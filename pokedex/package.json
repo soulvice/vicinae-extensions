@@ -4,7 +4,7 @@
   "title": "Pokedex Viewer",
   "description": "Browse and view detailed Pokemon information using PokeAPI GraphQL with split-view layout",
   "icon": "extension_icon.png",
-  "author": "dadmin",
+  "author": "soulvice",
   "license": "MIT",
   "categories": [
     "Fun",

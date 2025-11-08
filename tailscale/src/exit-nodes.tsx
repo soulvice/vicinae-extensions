@@ -19,6 +19,19 @@ export default function Command() {
     fetchExitNodes();
   }, []);
 
+  // Helper function to get display hostname
+  const getDisplayHostname = (hostname: string, dnsName: string, magicDnsSuffix: string): string => {
+    if (hostname === "localhost" && dnsName && magicDnsSuffix) {
+      // Remove the trailing dot from DNSName if present
+      const cleanDnsName = dnsName.endsWith('.') ? dnsName.slice(0, -1) : dnsName;
+      // Remove the MagicDNS suffix to get just the hostname part
+      if (cleanDnsName.endsWith(magicDnsSuffix)) {
+        return cleanDnsName.substring(0, cleanDnsName.length - magicDnsSuffix.length - 1); // -1 for the dot
+      }
+    }
+    return hostname;
+  };
+
   const fetchExitNodes = () => {
     try {
       setIsLoading(true);
@@ -29,6 +42,7 @@ export default function Command() {
       });
       const statusData = JSON.parse(statusOutput);
       const activeExitNode = statusData.ExitNodeStatus?.TailscaleIPs?.[0] || null;
+      const magicDnsSuffix = statusData.MagicDNSSuffix || "";
 
       // Parse peers for exit nodes
       const peers = statusData.Peer || {};
@@ -37,9 +51,10 @@ export default function Command() {
       Object.entries(peers).forEach(([id, peer]: [string, any]) => {
         // Check if peer can be used as exit node
         if (peer.ExitNodeOption) {
+          const displayHostname = getDisplayHostname(peer.HostName || "Unknown", peer.DNSName || "", magicDnsSuffix);
           nodes.push({
             id,
-            hostname: peer.HostName || "Unknown",
+            hostname: displayHostname,
             ip: peer.TailscaleIPs?.[0] || "N/A",
             location: peer.Location?.Country || "Unknown",
             active: peer.TailscaleIPs?.[0] === activeExitNode,

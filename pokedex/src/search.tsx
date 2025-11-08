@@ -1,7 +1,8 @@
-import { List, ActionPanel, Action, Icon, getPreferenceValues, Color } from "@vicinae/api";
+import { Grid, ActionPanel, Action, Icon, getPreferenceValues, Color } from "@vicinae/api";
 import React, { useState, useEffect, useCallback } from "react";
 import { PokeAPI } from "./api";
 import { PokemonV2, PokedexPreferences } from "./types";
+import TypeDropdown from "./components/type_dropdown";
 
 export default function Command() {
   const [pokemon, setPokemon] = useState<PokemonV2[]>([]);
@@ -9,6 +10,7 @@ export default function Command() {
   const [searchText, setSearchText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showingDetail, setShowingDetail] = useState(true);
+  const [selectedType, setSelectedType] = useState<string>("all");
 
   const preferences = getPreferenceValues<PokedexPreferences>();
   const pokeAPI = new PokeAPI(preferences);
@@ -22,7 +24,7 @@ export default function Command() {
       setIsLoading(true);
       setError(null);
 
-      const results = await pokeAPI.searchPokemon(query, 50);
+      const results = await pokeAPI.searchPokemon(query, 50, selectedType);
       setPokemon(results);
 
       if (results.length === 0) {
@@ -34,7 +36,7 @@ export default function Command() {
     } finally {
       setIsLoading(false);
     }
-  }, [pokeAPI]);
+  }, [pokeAPI, selectedType]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -47,7 +49,7 @@ export default function Command() {
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [searchText, isLoading, performSearch]);
+  }, [searchText, selectedType, isLoading, performSearch]);
 
   const getTypeEmoji = (typeName: string): string => {
     const typeEmojis: Record<string, string> = {
@@ -149,18 +151,18 @@ export default function Command() {
       });
 
     return (
-      <List.Item.Detail
+      <Grid.Item.Detail
         metadata={
-          <List.Item.Detail.Metadata>
-            <List.Item.Detail.Metadata.Label title="Name" text={formatPokemonName(poke.name)} />
-            <List.Item.Detail.Metadata.Label title="Pokedex #" text={`#${poke.id.toString().padStart(3, "0")}`} />
-            <List.Item.Detail.Metadata.Separator />
+          <Grid.Item.Detail.Metadata>
+            <Grid.Item.Detail.Metadata.Label title="Name" text={formatPokemonName(poke.name)} />
+            <Grid.Item.Detail.Metadata.Label title="Pokedex #" text={`#${poke.id.toString().padStart(3, "0")}`} />
+            <Grid.Item.Detail.Metadata.Separator />
 
-            <List.Item.Detail.Metadata.Label title="Type(s)" text={types.map(type =>
+            <Grid.Item.Detail.Metadata.Label title="Type(s)" text={types.map(type =>
               `${getTypeEmoji(type)} ${type.toUpperCase()}`).join("  ")} />
 
             {generation && (
-              <List.Item.Detail.Metadata.Label
+              <Grid.Item.Detail.Metadata.Label
                 title="Generation"
                 text={getGenerationName(generation.id)}
                 icon={{
@@ -171,7 +173,7 @@ export default function Command() {
             )}
 
             {poke.height != null && (
-              <List.Item.Detail.Metadata.Label
+              <Grid.Item.Detail.Metadata.Label
                 title="Height"
                 text={`${(poke.height / 10).toFixed(1)} m`}
                 icon={{
@@ -181,7 +183,7 @@ export default function Command() {
               />
             )}
             {poke.weight != null && (
-              <List.Item.Detail.Metadata.Label
+              <Grid.Item.Detail.Metadata.Label
                 title="Weight"
                 text={`${(poke.weight / 10).toFixed(1)} kg`}
                 icon={{
@@ -193,39 +195,41 @@ export default function Command() {
 
             {(hp !== null || attack !== null || defense !== null || speed !== null) && (
               <>
-                <List.Item.Detail.Metadata.Separator />
-                <List.Item.Detail.Metadata.Label title="Base Stats" />
-                {hp !== null && <List.Item.Detail.Metadata.Label title="HP" text={hp.toString()} />}
-                {attack !== null && <List.Item.Detail.Metadata.Label title="Attack" text={attack.toString()} />}
-                {defense !== null && <List.Item.Detail.Metadata.Label title="Defense" text={defense.toString()} />}
-                {speed !== null && <List.Item.Detail.Metadata.Label title="Speed" text={speed.toString()} />}
+                <Grid.Item.Detail.Metadata.Separator />
+                <Grid.Item.Detail.Metadata.Label title="Base Stats" />
+                {hp !== null && <Grid.Item.Detail.Metadata.Label title="HP" text={hp.toString()} />}
+                {attack !== null && <Grid.Item.Detail.Metadata.Label title="Attack" text={attack.toString()} />}
+                {defense !== null && <Grid.Item.Detail.Metadata.Label title="Defense" text={defense.toString()} />}
+                {speed !== null && <Grid.Item.Detail.Metadata.Label title="Speed" text={speed.toString()} />}
               </>
             )}
 
             {abilities.length > 0 && (
               <>
-                <List.Item.Detail.Metadata.Separator />
-                <List.Item.Detail.Metadata.Label title="Abilities" text={abilities.join(", ")} />
+                <Grid.Item.Detail.Metadata.Separator />
+                <Grid.Item.Detail.Metadata.Label title="Abilities" text={abilities.join(", ")} />
               </>
             )}
 
-            <List.Item.Detail.Metadata.Separator />
+            <Grid.Item.Detail.Metadata.Separator />
 
-            <List.Item.Detail.Metadata.Label title="Description" text={flavorText} />
-          </List.Item.Detail.Metadata>
+            <Grid.Item.Detail.Metadata.Label title="Description" text={flavorText} />
+          </Grid.Item.Detail.Metadata>
         }
       />
     );
   };
 
   return (
-    <List
+    <Grid
+      columns={4}
       isLoading={isLoading}
       searchText={searchText}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search by Pokemon name, number, or type..."
       filtering={false}
       isShowingDetail={showingDetail}
+      searchBarAccessory={<TypeDropdown type="grid" command="Search" onSelectType={setSelectedType} />}
       actions={
         <ActionPanel>
           <Action
@@ -255,7 +259,7 @@ export default function Command() {
         </ActionPanel>
       }
     >
-      <List.EmptyView
+      <Grid.EmptyView
         title="Search Pokedex"
         description="Enter a Pokemon name, Pokedex number, or type to search"
         icon={Icon.MagnifyingGlass}
@@ -273,21 +277,19 @@ export default function Command() {
               }}
             />
             <Action
-              title="Browse All Pokemon"
-              icon={Icon.List}
-              onAction={() => {
-                console.log("Navigate to browse");
-              }}
+              title="Clear Filter"
+              icon={Icon.XMark}
+              onAction={() => setSelectedType("all")}
             />
           </ActionPanel>
         }
       />
 
       {error && (
-        <List.Item
+        <Grid.Item
+          content={Icon.ExclamationMark}
           title="No Results"
           subtitle={error}
-          icon={Icon.ExclamationMark}
           actions={
             <ActionPanel>
               <Action
@@ -314,37 +316,20 @@ export default function Command() {
       {pokemon.map((poke) => {
         const types = poke.pokemon_v2_pokemontypes.map(t => t.pokemon_v2_type.name);
         const primaryType = types[0];
-        const typeString = types.map(type => `${getTypeEmoji(type)} ${type.toUpperCase()}`).join(" • ");
-        const generation = poke.pokemon_v2_pokemonspecy?.pokemon_v2_generation;
 
         return (
-          <List.Item
+          <Grid.Item
             key={poke.id}
-            title={formatPokemonName(poke.name)}
-            subtitle={`#${poke.id.toString().padStart(3, "0")} • ${typeString}`}
-            accessories={!showingDetail ? [
-              {
-                text: generation ? getGenerationName(generation.id) : "Unknown",
-                icon: {
-                  source: Icon.Globe,
-                  tintColor: getTypeColor(primaryType),
-                }
-              },
-              ...(poke.height != null && poke.weight != null ? [{
-                text: `${(poke.height / 10).toFixed(1)}m, ${(poke.weight / 10).toFixed(1)}kg`,
-                icon: {
-                  source: Icon.BarChart,
-                  tintColor: Color.Secondary,
-                }
-              }] : []),
-            ] : undefined}
-            icon={{
+            content={{
               source: pokeAPI.getPokemonSpriteUrl(poke),
               fallback: {
                 source: Icon.QuestionMark,
                 tintColor: getTypeColor(primaryType),
               }
             }}
+            title={formatPokemonName(poke.name)}
+            subtitle={`#${poke.id.toString().padStart(3, "0")}`}
+            keywords={[poke.id.toString(), poke.name, ...types]}
             detail={showingDetail ? <PokemonDetail pokemon={poke} /> : undefined}
             actions={
               <ActionPanel>
@@ -382,14 +367,23 @@ export default function Command() {
                     shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
                   />
                 </ActionPanel.Section>
-                <ActionPanel.Section title="Search">
+                <ActionPanel.Section title="Filter">
                   <Action
-                    title={`Search More ${primaryType.toUpperCase()}`}
+                    title={`Filter ${primaryType.charAt(0).toUpperCase() + primaryType.slice(1)} Types`}
                     icon={Icon.MagnifyingGlass}
                     onAction={() => {
-                      setSearchText(primaryType);
+                      setSelectedType(primaryType);
                     }}
                   />
+                  <Action
+                    title="Clear Filter"
+                    icon={Icon.XMark}
+                    onAction={() => {
+                      setSelectedType("all");
+                    }}
+                  />
+                </ActionPanel.Section>
+                <ActionPanel.Section title="Actions">
                   <Action
                     title="Random Pokemon"
                     icon={Icon.Shuffle}
@@ -414,6 +408,6 @@ export default function Command() {
           />
         );
       })}
-    </List>
+    </Grid>
   );
 }

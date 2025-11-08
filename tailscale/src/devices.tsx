@@ -14,6 +14,7 @@ interface TailscaleDevice {
 }
 
 interface TailscaleStatus {
+  MagicDNSSuffix: string;
   Self: {
     ID: string;
     HostName: string;
@@ -66,6 +67,19 @@ export default function Command() {
     }
   };
 
+  // Helper function to get display hostname
+  const getDisplayHostname = (hostname: string, dnsName: string, magicDnsSuffix: string): string => {
+    if (hostname === "localhost" && dnsName && magicDnsSuffix) {
+      // Remove the trailing dot from DNSName if present
+      const cleanDnsName = dnsName.endsWith('.') ? dnsName.slice(0, -1) : dnsName;
+      // Remove the MagicDNS suffix to get just the hostname part
+      if (cleanDnsName.endsWith(magicDnsSuffix)) {
+        return cleanDnsName.substring(0, cleanDnsName.length - magicDnsSuffix.length - 1); // -1 for the dot
+      }
+    }
+    return hostname;
+  };
+
   const fetchDevices = async () => {
     try {
       setIsLoading(true);
@@ -83,12 +97,14 @@ export default function Command() {
       const status: TailscaleStatus = JSON.parse(stdout);
 
       const deviceList: TailscaleDevice[] = [];
+      const magicDnsSuffix = status.MagicDNSSuffix || "";
 
       // Add current device
       if (status.Self) {
+        const displayHostname = getDisplayHostname(status.Self.HostName, status.Self.DNSName, magicDnsSuffix);
         deviceList.push({
           id: status.Self.ID,
-          hostname: status.Self.HostName,
+          hostname: displayHostname,
           ipv4: status.Self.TailscaleIPs?.find(ip => ip.includes(".")) || "",
           ipv6: status.Self.TailscaleIPs?.find(ip => ip.includes(":")) || "",
           magicDNS: status.Self.DNSName,
@@ -101,9 +117,10 @@ export default function Command() {
       // Add peer devices
       if (status.Peer) {
         Object.values(status.Peer).forEach((peer) => {
+          const displayHostname = getDisplayHostname(peer.HostName, peer.DNSName, magicDnsSuffix);
           deviceList.push({
             id: peer.ID,
-            hostname: peer.HostName,
+            hostname: displayHostname,
             ipv4: peer.TailscaleIPs?.find(ip => ip.includes(".")) || "",
             ipv6: peer.TailscaleIPs?.find(ip => ip.includes(":")) || "",
             magicDNS: peer.DNSName,

@@ -1,0 +1,102 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "wallpapers",
+  "title": "Wallpaper Manager",
+  "description": "Browse and set wallpapers using awww backend with grid view and random selection",
+  "icon": "extension_icon.png",
+  "author": "soulvice",
+  "license": "MIT",
+  "categories": [
+    "System",
+    "Utilities"
+  ],
+  "commands": [
+    {
+      "name": "browse",
+      "title": "Browse Wallpapers",
+      "description": "Browse wallpapers in a grid view and set as wallpaper",
+      "mode": "view"
+    },
+    {
+      "name": "random",
+      "title": "Random Wallpaper",
+      "description": "Set a random wallpaper from configured folders",
+      "mode": "no-view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "wallpaperFolders",
+      "title": "Wallpaper Folders",
+      "description": "Comma-separated list of wallpaper folder paths",
+      "type": "textfield",
+      "required": true,
+      "default": "~/Pictures/Wallpapers",
+      "placeholder": "~/Pictures/Wallpapers, ~/Downloads/Wallpapers"
+    },
+    {
+      "name": "awwwNamespace",
+      "title": "AWWW Namespace",
+      "description": "Namespace for awww daemon (optional, for multiple daemon instances)",
+      "type": "textfield",
+      "required": false,
+      "default": "",
+      "placeholder": "my-namespace"
+    },
+    {
+      "name": "postWallpaperCommand",
+      "title": "Post-Wallpaper Command",
+      "description": "Command to run after wallpaper is set (optional)",
+      "type": "textfield",
+      "required": false,
+      "default": "",
+      "placeholder": "notify-send 'Wallpaper changed'"
+    },
+    {
+      "name": "imageExtensions",
+      "title": "Image Extensions",
+      "description": "Comma-separated list of image file extensions",
+      "type": "textfield",
+      "required": false,
+      "default": "jpg,jpeg,png,webp,bmp,gif",
+      "placeholder": "jpg,jpeg,png,webp"
+    },
+    {
+      "name": "gridColumns",
+      "title": "Grid Columns",
+      "description": "Number of columns in the wallpaper grid",
+      "type": "dropdown",
+      "required": false,
+      "default": "4",
+      "data": [
+        {
+          "title": "3 Columns",
+          "value": "3"
+        },
+        {
+          "title": "4 Columns",
+          "value": "4"
+        },
+        {
+          "title": "5 Columns",
+          "value": "5"
+        },
+        {
+          "title": "6 Columns",
+          "value": "6"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop"
+  },
+  "dependencies": {
+    "@vicinae/api": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "@types/node": "^20.0.0"
+  }
+}
