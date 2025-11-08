@@ -126,6 +126,19 @@ export default function Command() {
 
   // Pokemon detail component - following Tailscale Devices pattern
   const PokemonDetail = ({ pokemon: poke }: { pokemon: PokemonV2 }) => {
+    // Defensive checks to ensure we have the minimum required data
+    if (!poke?.pokemon_v2_pokemontypes || poke.pokemon_v2_pokemontypes.length === 0) {
+      return (
+        <Grid.Item.Detail
+          metadata={
+            <Grid.Item.Detail.Metadata>
+              <Grid.Item.Detail.Metadata.Label title="Error" text="Pokemon data incomplete. Try refreshing." />
+            </Grid.Item.Detail.Metadata>
+          }
+        />
+      );
+    }
+
     const types = poke.pokemon_v2_pokemontypes.map(t => t.pokemon_v2_type.name);
     const primaryType = types[0];
     const generation = poke.pokemon_v2_pokemonspecy?.pokemon_v2_generation;

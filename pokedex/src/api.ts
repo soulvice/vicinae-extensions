@@ -56,10 +56,64 @@ export class PokeAPI {
               name
             }
           }
+          pokemon_v2_pokemonstats {
+            base_stat
+            effort
+            pokemon_v2_stat {
+              id
+              name
+            }
+          }
+          pokemon_v2_pokemonabilities {
+            is_hidden
+            slot
+            pokemon_v2_ability {
+              id
+              name
+            }
+          }
+          pokemon_v2_pokemonmoves(limit: 10) {
+            level
+            pokemon_v2_move {
+              id
+              name
+              power
+              accuracy
+              pp
+              pokemon_v2_type {
+                name
+              }
+              pokemon_v2_movedamageclass {
+                name
+              }
+            }
+            pokemon_v2_movelearnmethod {
+              name
+            }
+          }
           pokemon_v2_pokemonspecy {
+            id
+            name
+            base_happiness
+            capture_rate
+            pokemon_v2_pokemoncolor {
+              name
+            }
             pokemon_v2_generation {
               id
               name
+            }
+            pokemon_v2_pokemonspeciesflavortexts(
+              where: { pokemon_v2_language: { name: { _eq: "en" } } }
+              limit: 1
+            ) {
+              flavor_text
+              pokemon_v2_language {
+                name
+              }
+              pokemon_v2_version {
+                name
+              }
             }
           }
         }
@@ -206,7 +260,19 @@ export class PokeAPI {
             id: speciesData?.generation?.url?.match(/\/(\d+)\/$/)?.[1] ?
                 parseInt(speciesData.generation.url.match(/\/(\d+)\/$/)[1]) : 1,
             name: speciesData?.generation?.name || "generation-i"
-          }
+          },
+          pokemon_v2_pokemonspeciesflavortexts: speciesData?.flavor_text_entries
+            ?.filter((entry: any) => entry.language?.name === "en")
+            ?.slice(0, 1)
+            ?.map((entry: any) => ({
+              flavor_text: entry.flavor_text,
+              pokemon_v2_language: {
+                name: entry.language.name
+              },
+              pokemon_v2_version: {
+                name: entry.version?.name || "unknown"
+              }
+            })) || []
         }
       };
 
@@ -323,10 +389,64 @@ export class PokeAPI {
               name
             }
           }
+          pokemon_v2_pokemonstats {
+            base_stat
+            effort
+            pokemon_v2_stat {
+              id
+              name
+            }
+          }
+          pokemon_v2_pokemonabilities {
+            is_hidden
+            slot
+            pokemon_v2_ability {
+              id
+              name
+            }
+          }
+          pokemon_v2_pokemonmoves(limit: 10) {
+            level
+            pokemon_v2_move {
+              id
+              name
+              power
+              accuracy
+              pp
+              pokemon_v2_type {
+                name
+              }
+              pokemon_v2_movedamageclass {
+                name
+              }
+            }
+            pokemon_v2_movelearnmethod {
+              name
+            }
+          }
           pokemon_v2_pokemonspecy {
+            id
+            name
+            base_happiness
+            capture_rate
+            pokemon_v2_pokemoncolor {
+              name
+            }
             pokemon_v2_generation {
               id
               name
+            }
+            pokemon_v2_pokemonspeciesflavortexts(
+              where: { pokemon_v2_language: { name: { _eq: "en" } } }
+              limit: 1
+            ) {
+              flavor_text
+              pokemon_v2_language {
+                name
+              }
+              pokemon_v2_version {
+                name
+              }
             }
           }
         }
