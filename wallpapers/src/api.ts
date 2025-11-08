@@ -168,6 +168,7 @@ export class WallpaperAPI {
 
       // Execute awww img command
       const output = execSync(command, {
+        shell: '/bin/bash',
         encoding: 'utf-8',
         timeout: 10000 // 10 second timeout
       });
@@ -177,6 +178,7 @@ export class WallpaperAPI {
       if (postCommand && postCommand.trim()) {
         try {
           execSync(postCommand.trim(), {
+            shell: '/bin/bash',
             encoding: 'utf-8',
             timeout: 5000 // 5 second timeout
           });
@@ -242,7 +244,7 @@ export class WallpaperAPI {
    */
   isAwwwAvailable(): boolean {
     try {
-      execSync('which awww', { encoding: 'utf-8' });
+      execSync('which awww', { shell: '/bin/bash', encoding: 'utf-8' });
       return true;
     } catch {
       return false;
@@ -254,9 +256,11 @@ export class WallpaperAPI {
    */
   isAwwwDaemonRunning(): boolean {
     try {
-      // Check if awww-daemon process is running
-      execSync('pgrep -f awww-daemon', { encoding: 'utf-8' });
-      return true;
+      // Use cross-platform approach - check if we can connect to the daemon
+      // Look for socket files in runtime directory
+      const runtimeDir = process.env.XDG_RUNTIME_DIR || '/tmp';
+      const files = require('fs').readdirSync(runtimeDir);
+      return files.some((file: string) => file.startsWith('awww-daemon') && file.endsWith('.socket'));
     } catch {
       return false;
     }
@@ -273,25 +277,26 @@ export class WallpaperAPI {
     let namespaces: string[] = [];
     if (isRunning) {
       try {
-        // Look for socket files to determine active namespaces
+        // Look for socket files to determine active namespaces using Node.js
         const runtimeDir = process.env.XDG_RUNTIME_DIR || '/tmp';
-        const socketPattern = `${runtimeDir}/awww-daemon*.socket`;
-        const sockets = execSync(`ls ${socketPattern} 2>/dev/null || echo ""`, { encoding: 'utf-8' });
+        const files = require('fs').readdirSync(runtimeDir);
+        const socketFiles = files.filter((file: string) =>
+          file.startsWith('awww-daemon') && file.endsWith('.socket')
+        );
 
-        if (sockets.trim()) {
-          namespaces = sockets.trim().split('\n')
-            .filter(line => line.includes('awww-daemon'))
-            .map(socket => {
+        if (socketFiles.length > 0) {
+          namespaces = socketFiles
+            .map((socketFile: string) => {
               // Extract namespace from socket filename
-              const match = socket.match(/awww-daemon\.(.+)\.socket$/);
+              const match = socketFile.match(/awww-daemon\.(.+)\.socket$/);
               if (match) {
                 return match[1];
-              } else if (socket.includes('awww-daemon.socket')) {
+              } else if (socketFile === 'awww-daemon.socket') {
                 return 'default';
               }
               return null;
             })
-            .filter((ns): ns is string => ns !== null);
+            .filter((ns: string | null): ns is string => ns !== null);
         }
 
         // If no sockets found but daemon is running, assume default namespace
