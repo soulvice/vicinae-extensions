@@ -1,20 +1,17 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Node 16",
+  "include": ["src/**/*"],
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
-    "allowSyntheticDefaultImports": true,
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
+    //"lib": ["es2020"],
+    "module": "commonjs",
+    "target": "es2020",
     "strict": true,
-    "declaration": true,
-    "skipLibCheck": true,
+    "isolatedModules": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
-  },
-  "include": [
-    "src/**/*"
-  ]
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx"
+  }
 }
