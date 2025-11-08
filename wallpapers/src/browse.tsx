@@ -121,7 +121,7 @@ export default function Command() {
   }, [wallpapers]);
 
   // Wallpaper detail component
-  const WallpaperDetail = ({ wallpaper }: { wallpaper: WallpaperFile }) => {
+  const WallpaperDetail = React.memo(({ wallpaper }: { wallpaper: WallpaperFile }) => {
     return (
       <Grid.Item.Detail
         markdown={`
@@ -137,7 +137,8 @@ export default function Command() {
         `}
       />
     );
-  };
+  });
+  WallpaperDetail.displayName = 'WallpaperDetail';
 
   return (
     <Grid

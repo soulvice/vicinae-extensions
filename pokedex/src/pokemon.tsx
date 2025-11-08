@@ -1,4 +1,4 @@
-import { Detail, ActionPanel, Action, Icon, getPreferenceValues } from "@vicinae/api";
+import { Detail, ActionPanel, Action, Icon, getPreferenceValues, Color } from "@vicinae/api";
 import React, { useState, useEffect } from "react";
 import { PokeAPI } from "./api";
 import { PokemonV2, PokedexPreferences } from "./types";
