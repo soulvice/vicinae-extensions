@@ -259,8 +259,9 @@ export class WallpaperAPI {
       // Use cross-platform approach - check if we can connect to the daemon
       // Look for socket files in runtime directory
       const runtimeDir = process.env.XDG_RUNTIME_DIR || '/tmp';
+      const waylandDisplay = process.env.WAYLAND_DISPLAY || 'wayland-0';
       const files = require('fs').readdirSync(runtimeDir);
-      return files.some((file: string) => file.startsWith('awww-daemon') && file.endsWith('.socket'));
+      return files.some((file: string) => file.startsWith(waylandDisplay+'-awww-daemon') && file.endsWith('.sock'));
     } catch {
       return false;
     }
@@ -279,19 +280,20 @@ export class WallpaperAPI {
       try {
         // Look for socket files to determine active namespaces using Node.js
         const runtimeDir = process.env.XDG_RUNTIME_DIR || '/tmp';
+        const waylandDisplay = process.env.WAYLAND_DISPLAY || 'wayland-0';
         const files = require('fs').readdirSync(runtimeDir);
         const socketFiles = files.filter((file: string) =>
-          file.startsWith('awww-daemon') && file.endsWith('.socket')
+          file.startsWith(waylandDisplay+'-awww-daemon') && file.endsWith('.sock')
         );
 
         if (socketFiles.length > 0) {
           namespaces = socketFiles
             .map((socketFile: string) => {
               // Extract namespace from socket filename
-              const match = socketFile.match(/awww-daemon\.(.+)\.socket$/);
+              const match = socketFile.match(/awww-daemon\.(.+)\.sock$/);
               if (match) {
                 return match[1];
-              } else if (socketFile === 'awww-daemon.socket') {
+              } else if (socketFile === (waylandDisplay+'awww-daemon.sock')) {
                 return 'default';
               }
               return null;
