@@ -168,7 +168,6 @@ export class WallpaperAPI {
 
       // Execute awww img command
       const output = execSync(command, {
-        shell: '/bin/bash',
         encoding: 'utf-8',
         timeout: 10000 // 10 second timeout
       });
@@ -178,7 +177,6 @@ export class WallpaperAPI {
       if (postCommand && postCommand.trim()) {
         try {
           execSync(postCommand.trim(), {
-            shell: '/bin/bash',
             encoding: 'utf-8',
             timeout: 5000 // 5 second timeout
           });
@@ -244,7 +242,7 @@ export class WallpaperAPI {
    */
   isAwwwAvailable(): boolean {
     try {
-      execSync('which awww', { shell: '/bin/bash', encoding: 'utf-8' });
+      execSync('which awww', { encoding: 'utf-8' });
       return true;
     } catch {
       return false;
