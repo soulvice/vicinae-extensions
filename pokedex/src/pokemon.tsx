@@ -354,6 +354,129 @@ ${flavorText}
     <Detail
       isLoading={isLoading}
       markdown={markdown}
+      metadata={
+        pokemon && (
+          <Detail.Metadata>
+            <Detail.Metadata.Label title="Name" text={formatPokemonName(pokemon.name)} />
+            <Detail.Metadata.Label title="Pokédex #" text={`#${pokemon.id.toString().padStart(3, "0")}`} />
+            <Detail.Metadata.Separator />
+
+            <Detail.Metadata.TagList title="Type(s)">
+              {pokemon.pokemon_v2_pokemontypes.map((typeData, index) => (
+                <Detail.Metadata.TagList.Item
+                  key={index}
+                  text={typeData.pokemon_v2_type.name.toUpperCase()}
+                  color={getTypeColor(typeData.pokemon_v2_type.name)}
+                />
+              ))}
+            </Detail.Metadata.TagList>
+
+            <Detail.Metadata.Label
+              title="Generation"
+              text={pokemon.pokemon_v2_pokemonspecy?.pokemon_v2_generation?.name?.replace('generation-', 'Gen ').toUpperCase() || 'Unknown'}
+            />
+
+            <Detail.Metadata.Separator />
+
+            <Detail.Metadata.Label
+              title="Height"
+              text={formatHeight(pokemon.height)}
+              icon={{ source: Icon.Ruler, tintColor: Color.Secondary }}
+            />
+            <Detail.Metadata.Label
+              title="Weight"
+              text={formatWeight(pokemon.weight)}
+              icon={{ source: Icon.BarChart, tintColor: Color.Secondary }}
+            />
+            <Detail.Metadata.Label
+              title="Base Experience"
+              text={`${pokemon.base_experience || "Unknown"} XP`}
+            />
+
+            <Detail.Metadata.Separator />
+
+            {/* Base Stats */}
+            {pokemon.pokemon_v2_pokemonstats.map((stat, idx) => (
+              <Detail.Metadata.Label
+                key={idx}
+                title={getStatName(stat.pokemon_v2_stat.name)}
+                text={stat.base_stat.toString()}
+              />
+            ))}
+
+            <Detail.Metadata.Separator />
+
+            {/* Abilities */}
+            <Detail.Metadata.TagList title="Abilities">
+              {pokemon.pokemon_v2_pokemonabilities
+                .sort((a, b) => a.slot - b.slot)
+                .map((ability, index) => (
+                  <Detail.Metadata.TagList.Item
+                    key={index}
+                    text={formatPokemonName(ability.pokemon_v2_ability.name)}
+                    color={ability.is_hidden ? Color.Orange : Color.Blue}
+                  />
+                ))}
+            </Detail.Metadata.TagList>
+
+            {/* Type Effectiveness */}
+            {typeEffectiveness && (
+              <>
+                <Detail.Metadata.Separator />
+
+                {typeEffectiveness.weaknesses.length > 0 && (
+                  <Detail.Metadata.TagList title="Weak To">
+                    {typeEffectiveness.weaknesses.map((type, index) => (
+                      <Detail.Metadata.TagList.Item
+                        key={index}
+                        text={type.toUpperCase()}
+                        color={Color.Red}
+                      />
+                    ))}
+                  </Detail.Metadata.TagList>
+                )}
+
+                {typeEffectiveness.resistances.length > 0 && (
+                  <Detail.Metadata.TagList title="Resists">
+                    {typeEffectiveness.resistances.map((type, index) => (
+                      <Detail.Metadata.TagList.Item
+                        key={index}
+                        text={type.toUpperCase()}
+                        color={Color.Green}
+                      />
+                    ))}
+                  </Detail.Metadata.TagList>
+                )}
+
+                {typeEffectiveness.immunities.length > 0 && (
+                  <Detail.Metadata.TagList title="Immune To">
+                    {typeEffectiveness.immunities.map((type, index) => (
+                      <Detail.Metadata.TagList.Item
+                        key={index}
+                        text={type.toUpperCase()}
+                        color={Color.Purple}
+                      />
+                    ))}
+                  </Detail.Metadata.TagList>
+                )}
+              </>
+            )}
+
+            <Detail.Metadata.Separator />
+
+            <Detail.Metadata.Link
+              title="Pokémon Database"
+              text="View on PokémonDB"
+              target={`https://pokemondb.net/pokedex/${pokemon.name}`}
+            />
+            <Detail.Metadata.Link
+              title="Bulbapedia"
+              text="View on Bulbapedia"
+              target={`https://bulbapedia.bulbagarden.net/wiki/${formatPokemonName(pokemon.name).replace(" ", "_")}_(Pokémon)`}
+            />
+          </Detail.Metadata>
+        )
+      }
       actions={
         <ActionPanel>
           <Action

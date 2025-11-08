@@ -124,32 +124,17 @@ export default function Command() {
   const WallpaperDetail = ({ wallpaper }: { wallpaper: WallpaperFile }) => {
     return (
       <Grid.Item.Detail
-        metadata={
-          <Grid.Item.Detail.Metadata>
-            <Grid.Item.Detail.Metadata.Label title="Name" text={wallpaper.name} />
-            <Grid.Item.Detail.Metadata.Label title="Filename" text={wallpaper.path} />
-            <Grid.Item.Detail.Metadata.Separator />
+        markdown={`
+# ${wallpaper.name}
 
-            <Grid.Item.Detail.Metadata.Label title="Folder" text={wallpaper.folder} />
-            <Grid.Item.Detail.Metadata.Label title="Extension" text={wallpaper.extension.toUpperCase()} />
-            <Grid.Item.Detail.Metadata.Label title="Size" text={formatFileSize(wallpaper.size)} />
-
-            <Grid.Item.Detail.Metadata.Separator />
-
-            <Grid.Item.Detail.Metadata.Label
-              title="Last Modified"
-              text={wallpaper.lastModified.toLocaleDateString()}
-            />
-            <Grid.Item.Detail.Metadata.Label
-              title="Full Path"
-              text={wallpaper.absolutePath}
-              icon={{
-                source: Icon.Folder,
-                tintColor: Color.Secondary,
-              }}
-            />
-          </Grid.Item.Detail.Metadata>
-        }
+## File Information
+- **Filename:** ${wallpaper.path}
+- **Folder:** ${wallpaper.folder}
+- **Extension:** ${wallpaper.extension.toUpperCase()}
+- **Size:** ${formatFileSize(wallpaper.size)}
+- **Last Modified:** ${wallpaper.lastModified.toLocaleDateString()}
+- **Full Path:** ${wallpaper.absolutePath}
+        `}
       />
     );
   };

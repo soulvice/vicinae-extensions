@@ -1,4 +1,5 @@
 import { Grid, ActionPanel, Action, Icon, getPreferenceValues, Color } from "@vicinae/api";
+import PokemonDetail from "./pokemon";
 import React, { useState, useEffect, useCallback } from "react";
 import { PokeAPI } from "./api";
 import { PokemonV2, PokedexPreferences, GenerationGroup } from "./types";
@@ -148,114 +149,6 @@ export default function Command() {
       .sort((a, b) => a.generation - b.generation);
   };
 
-  // Pokemon detail component
-  const PokemonDetail = ({ pokemon: poke }: { pokemon: PokemonV2 }) => {
-    // Defensive checks to ensure we have the minimum required data
-    if (!poke?.pokemon_v2_pokemontypes || poke.pokemon_v2_pokemontypes.length === 0) {
-      return (
-        <Grid.Item.Detail
-          metadata={
-            <Grid.Item.Detail.Metadata>
-              <Grid.Item.Detail.Metadata.Label title="Error" text="Pokemon data incomplete. Try refreshing." />
-            </Grid.Item.Detail.Metadata>
-          }
-        />
-      );
-    }
-
-    const types = poke.pokemon_v2_pokemontypes.map(t => t.pokemon_v2_type.name);
-    const primaryType = types[0];
-    const generation = poke.pokemon_v2_pokemonspecy?.pokemon_v2_generation;
-
-    // Safe flavor text access with proper null checking
-    const flavorText = poke.pokemon_v2_pokemonspecy?.pokemon_v2_pokemonspeciesflavortexts
-      ?.find(text => text.pokemon_v2_language.name === "en")?.flavor_text
-      ?.replace(/\f/g, ' ')?.replace(/\n/g, ' ') || "Click to view full details in Pokemon command";
-
-    // Get stats with null checking
-    const stats = poke.pokemon_v2_pokemonstats || [];
-    const hp = stats.find(s => s.pokemon_v2_stat.name === "hp")?.base_stat || null;
-    const attack = stats.find(s => s.pokemon_v2_stat.name === "attack")?.base_stat || null;
-    const defense = stats.find(s => s.pokemon_v2_stat.name === "defense")?.base_stat || null;
-    const speed = stats.find(s => s.pokemon_v2_stat.name === "speed")?.base_stat || null;
-
-    // Get abilities with null checking
-    const abilities = (poke.pokemon_v2_pokemonabilities || [])
-      .sort((a, b) => a.slot - b.slot)
-      .map(ability => {
-        const name = formatPokemonName(ability.pokemon_v2_ability.name);
-        return ability.is_hidden ? `${name} (Hidden)` : name;
-      });
-
-    return (
-      <Grid.Item.Detail
-        metadata={
-          <Grid.Item.Detail.Metadata>
-            <Grid.Item.Detail.Metadata.Label title="Name" text={formatPokemonName(poke.name)} />
-            <Grid.Item.Detail.Metadata.Label title="Pokedex #" text={`#${poke.id.toString().padStart(3, "0")}`} />
-            <Grid.Item.Detail.Metadata.Separator />
-
-            <Grid.Item.Detail.Metadata.Label title="Type(s)" text={types.map(type =>
-              `${getTypeEmoji(type)} ${type.toUpperCase()}`).join("  ")} />
-
-            {generation && (
-              <Grid.Item.Detail.Metadata.Label
-                title="Generation"
-                text={getGenerationName(generation.id)}
-                icon={{
-                  source: Icon.Globe,
-                  tintColor: getTypeColor(primaryType),
-                }}
-              />
-            )}
-
-            {poke.height != null && (
-              <Grid.Item.Detail.Metadata.Label
-                title="Height"
-                text={`${(poke.height / 10).toFixed(1)} m`}
-                icon={{
-                  source: Icon.Ruler,
-                  tintColor: Color.Secondary,
-                }}
-              />
-            )}
-            {poke.weight != null && (
-              <Grid.Item.Detail.Metadata.Label
-                title="Weight"
-                text={`${(poke.weight / 10).toFixed(1)} kg`}
-                icon={{
-                  source: Icon.BarChart,
-                  tintColor: Color.Secondary,
-                }}
-              />
-            )}
-
-            {(hp !== null || attack !== null || defense !== null || speed !== null) && (
-              <>
-                <Grid.Item.Detail.Metadata.Separator />
-                <Grid.Item.Detail.Metadata.Label title="Base Stats" />
-                {hp !== null && <Grid.Item.Detail.Metadata.Label title="HP" text={hp.toString()} />}
-                {attack !== null && <Grid.Item.Detail.Metadata.Label title="Attack" text={attack.toString()} />}
-                {defense !== null && <Grid.Item.Detail.Metadata.Label title="Defense" text={defense.toString()} />}
-                {speed !== null && <Grid.Item.Detail.Metadata.Label title="Speed" text={speed.toString()} />}
-              </>
-            )}
-
-            {abilities.length > 0 && (
-              <>
-                <Grid.Item.Detail.Metadata.Separator />
-                <Grid.Item.Detail.Metadata.Label title="Abilities" text={abilities.join(", ")} />
-              </>
-            )}
-
-            <Grid.Item.Detail.Metadata.Separator />
-
-            <Grid.Item.Detail.Metadata.Label title="Description" text={flavorText} />
-          </Grid.Item.Detail.Metadata>
-        }
-      />
-    );
-  };
 
   const generationGroups = groupPokemonByGeneration(pokemon);
 
@@ -345,9 +238,14 @@ export default function Command() {
                     title={formatPokemonName(poke.name)}
                     subtitle={`#${poke.id.toString().padStart(3, "0")}`}
                     keywords={[poke.id.toString(), poke.name, ...types]}
-                    detail={showingDetail ? <PokemonDetail pokemon={poke} /> : undefined}
                     actions={
                       <ActionPanel>
+                        <Action.Push
+                          title="View Details"
+                          icon={Icon.Eye}
+                          target={<PokemonDetail pokemonId={poke.id.toString()} />}
+                          shortcut={{ modifiers: ["cmd"], key: "enter" }}
+                        />
                         <Action
                           title={showingDetail ? "Hide Details" : "Show Details"}
                           icon={showingDetail ? Icon.EyeDisabled : Icon.Eye}
