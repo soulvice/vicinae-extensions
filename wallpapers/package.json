@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
-  "name": "awww-switcher",
-  "title": "AWWW Switcher",
+  "name": "wallpapers",
+  "title": "Wallpaper Switcher",
   "description": "Switch your wallpaper with awww and call a color gen to update color pallets while you are at it",
   "categories": [],
   "license": "MIT",
