@@ -13,7 +13,7 @@ export async function omniCommand(
   colorApp: string,
   postProduction: string,
   postCommandString: string,
-  namespace?: string,
+  namespace: string = "",
 ) {
   let success: boolean;
 
@@ -117,16 +117,16 @@ export const setWallpaper = async (
   transition: string,
   steps: number,
   seconds: number,
-  namespace?: string,
+  namespace: string = "",
 ): Promise<boolean> => {
   try {
     execSync(`awww query`+ 
-          ((namespace !== 'undefined') ?` --namespace ${namespace}` : ``), { stdio: "pipe" });
+          ((namespace !== "") ?` --namespace ${namespace}` : ``), { stdio: "pipe" });
 
     return await new Promise<boolean>((resolve) => {
       exec(
         `awww img ${path} -t ${transition} --transition-step ${steps} --transition-duration ${seconds} ` + 
-          ((namespace !== 'undefined') ?` --namespace ${namespace}` : ``),
+          ((namespace !== "") ?` --namespace ${namespace}` : ``),
         (error: any) => {
           if (error) {
             resolve(false);
@@ -147,17 +147,17 @@ export const setWallpaperOnMonitor = async (
   transition: string,
   steps: number,
   seconds: number,
-  namespace?: string,
+  namespace: string = "",
 
 ): Promise<boolean> => {
   try {
     execSync(`awww query`+ 
-          ((namespace !== 'undefined') ?` --namespace ${namespace}` : ``), { stdio: "pipe" });
+          ((namespace !== "") ?` --namespace ${namespace}` : ``), { stdio: "pipe" });
 
     return await new Promise<boolean>((resolve) => {
       exec(
         `awww img ${path} --outputs "${monitorName}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds}`+ 
-          ((namespace !== 'undefined') ?` --namespace ${namespace}` : ``),
+          ((namespace !== "") ?` --namespace ${namespace}` : ``),
         (error: any) => {
           if (error) {
             resolve(false);
