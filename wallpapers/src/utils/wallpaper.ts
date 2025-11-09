@@ -18,7 +18,7 @@ export async function omniCommand(
   let success: boolean;
 
   if (monitor === "ALL") {
-    success = await setWallpaper(path, transition, steps, duration);
+    success = await setWallpaper(path, transition, steps, duration, namespace);
   } else if (monitor.includes("|")) {
     const splitImages = await runConvertSplit(path);
     const monitors = monitor.split("|");
