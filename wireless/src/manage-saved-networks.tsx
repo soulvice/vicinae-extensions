@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Color, Icon, List, showToast } from "@vicinae/api";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { executeNmcliCommand, executeNmcliCommandSilent } from "./utils/execute";
 import {
   type CurrentConnection,
