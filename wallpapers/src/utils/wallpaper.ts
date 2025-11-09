@@ -120,7 +120,8 @@ export const setWallpaper = async (
   namespace?: string,
 ): Promise<boolean> => {
   try {
-    execSync("awww query", { stdio: "pipe" });
+    execSync(`awww query`+ 
+          ((namespace !== 'undefined') ?` --namespace ${namespace}` : ``), { stdio: "pipe" });
 
     return await new Promise<boolean>((resolve) => {
       exec(
@@ -150,7 +151,8 @@ export const setWallpaperOnMonitor = async (
 
 ): Promise<boolean> => {
   try {
-    execSync("awww query", { stdio: "pipe" });
+    execSync(`awww query`+ 
+          ((namespace !== 'undefined') ?` --namespace ${namespace}` : ``), { stdio: "pipe" });
 
     return await new Promise<boolean>((resolve) => {
       exec(
