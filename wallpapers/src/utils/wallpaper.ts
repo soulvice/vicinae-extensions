@@ -88,7 +88,7 @@ export async function omniCommand(
       }
     }
     if (postCommandString !== "") {
-      const postCommandSuccess = await execPostCommand(postCommandString, path);
+      const postCommandSuccess = await execPostCommand(postCommandString, path, monitor, namespace);
 
       if (postCommandSuccess) {
         showToast({
@@ -179,12 +179,16 @@ export const toggleVicinae = (): void => {
 export const execPostCommand = async (
   postCommand: string,
   imagePath: string,
+  monitor: string,
+  namespace: string = "",
 ): Promise<boolean> => {
   // Execute the command and check for errors
   console.log(postCommand);
   console.log(imagePath);
   return await new Promise<boolean>((resolve) => {
-    const command = postCommand.replace(/\$\{wallpaper\}/g, imagePath);
+    const command = postCommand.replace(/\$\{wallpaper\}/g, imagePath)
+      .replace(/\$\{monitor\}/g, monitor)
+      .replace(/\$\{namespace\}/g, namespace);
 
     exec(command, (error) => {
       if (error) {

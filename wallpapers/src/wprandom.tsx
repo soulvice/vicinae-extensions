@@ -18,6 +18,7 @@ export default async function RandomWallpaper() {
   const leftMonitorName: string = getPreferenceValues().leftMonitor;
   const rightMonitorName: string = getPreferenceValues().rightMonitor;
   const postProduction = getPreferenceValues().postProduction;
+  const postCommandString: string = getPreferenceValues().postCommand;
   const namespaceString: string = getPreferenceValues().daemonNamespace;
   const compositorString: string = getPreferenceValues().compositor;
 
@@ -60,7 +61,7 @@ export default async function RandomWallpaper() {
         preferences.toggleVicinaeSetting,
         colorGen,
         postProduction,
-        "",
+        postCommandString,
         namespaceString
       );
     } else {
@@ -73,7 +74,7 @@ export default async function RandomWallpaper() {
         preferences.toggleVicinaeSetting,
         colorGen,
         postProduction,
-        "",
+        postCommandString,
         namespaceString
       );
     }
