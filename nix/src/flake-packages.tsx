@@ -1,7 +1,7 @@
 import { Icon } from "@vicinae/api";
 import { searchNixFlakes } from "./api";
 import { FlakeListItem } from "./components";
-import GenericCommand from "./generic-command";
+import GenericCommand from "../generic-command";
 
 export default function Command() {
   return (
