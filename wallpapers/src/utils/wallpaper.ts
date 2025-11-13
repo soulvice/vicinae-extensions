@@ -14,11 +14,12 @@ export async function omniCommand(
   postProduction: string,
   postCommandString: string,
   namespace: string = "",
+  fps: number,
 ) {
   let success: boolean;
 
   if (monitor === "ALL") {
-    success = await setWallpaper(path, transition, steps, duration, namespace);
+    success = await setWallpaper(path, transition, steps, duration, namespace, fps);
   } else if (monitor.includes("|")) {
     const splitImages = await runConvertSplit(path);
     const monitors = monitor.split("|");
@@ -31,6 +32,7 @@ export async function omniCommand(
       steps,
       duration,
       namespace,
+      fps,
     );
     const ok2 = await setWallpaperOnMonitor(
       splitImages[1],
@@ -39,6 +41,7 @@ export async function omniCommand(
       steps,
       duration,
       namespace,
+      fps,
     );
 
     success = ok1 && ok2;
@@ -50,6 +53,7 @@ export async function omniCommand(
       steps,
       duration,
       namespace,
+      fps,
     );
   }
 
@@ -87,7 +91,7 @@ export async function omniCommand(
         });
       }
     }
-    if (postCommandString !== "") {
+    if (postCommandString) {
       const postCommandSuccess = await execPostCommand(postCommandString, path, monitor, namespace);
 
       if (postCommandSuccess) {
@@ -118,6 +122,7 @@ export const setWallpaper = async (
   steps: number,
   seconds: number,
   namespace: string = "",
+  fps: number,
 ): Promise<boolean> => {
   try {
     execSync(`awww query`+ 
@@ -125,7 +130,7 @@ export const setWallpaper = async (
 
     return await new Promise<boolean>((resolve) => {
       exec(
-        `awww img ${path} -t ${transition} --transition-step ${steps} --transition-duration ${seconds} ` + 
+        `awww img ${path} -t ${transition} --transition-step ${steps} --transition-duration ${seconds} --transition-fps ${fps}` + 
           ((namespace !== "") ?` --namespace ${namespace}` : ``),
         (error: any) => {
           if (error) {
@@ -148,6 +153,7 @@ export const setWallpaperOnMonitor = async (
   steps: number,
   seconds: number,
   namespace: string = "",
+  fps: number,
 
 ): Promise<boolean> => {
   try {
@@ -156,7 +162,7 @@ export const setWallpaperOnMonitor = async (
 
     return await new Promise<boolean>((resolve) => {
       exec(
-        `awww img ${path} --outputs "${monitorName}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds}`+ 
+        `awww img ${path} --outputs "${monitorName}" -t ${transition} --transition-step ${steps} --transition-duration ${seconds} --transition-fps ${fps}`+ 
           ((namespace !== "") ?` --namespace ${namespace}` : ``),
         (error: any) => {
           if (error) {

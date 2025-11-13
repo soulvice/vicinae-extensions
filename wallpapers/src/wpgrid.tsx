@@ -9,19 +9,20 @@ import {
   getPreferenceValues,
 } from "@vicinae/api";
 import { getImagesFromPath, Image } from "./utils/image";
-import { Monitor, getMonitors } from "./utils/monitor";
+import { WindowManagement as wm } from "@vicinae/api";
 import { omniCommand } from "./utils/wallpaper";
+import { createHash } from "node:crypto";
 
 // test
 
 export default function DisplayGrid() {
-  const [monitors, setMonitors] = useState<Monitor[]>([]);
+  const [monitors, setMonitors] = useState<wm.Screen[]>([]);
+  const [isWMSupported, setIsWMSupported] = useState<boolean>(true);
   const path: string = getPreferenceValues().wallpaperPath;
   const awwwTransition: string = getPreferenceValues().transitionType || "fade";
-  const awwwSteps: number =
-    parseInt(getPreferenceValues().transitionSteps) || 90;
-  const awwwDuration: number =
-    parseInt(getPreferenceValues().transitionDuration) || 3;
+  const awwwSteps: number = parseInt(getPreferenceValues().transitionSteps) || 90;
+  const awwwDuration: number = parseInt(getPreferenceValues().transitionDuration) || 3;
+  const awwwFPS: number = parseInt(getPreferenceValues().transitionFPS) || 60;
   const colorGen: string = getPreferenceValues().colorGenTool || "none";
   const gridRows = parseInt(getPreferenceValues().gridRows) || 4;
   type Preferences = {
@@ -42,8 +43,20 @@ export default function DisplayGrid() {
 
   const monitorNames = monitors.map((m) => m.name);
 
+  const hashMonitor = (monitor: wm.Screen): string => {
+    return createHash("sha256").update(JSON.stringify(monitor), "utf8").digest("hex");
+  };
+
   useEffect(() => {
-    getMonitors(compositorString).then(setMonitors);
+    wm.getScreens().then(setMonitors, (err) => {
+      setIsWMSupported(false);
+
+      showToast({
+        title: "Could not get monitors, monitor specific features will be disabled",
+        message: err,
+        style: Toast.Style.Failure,
+      });
+    });
     getImagesFromPath(path)
       .then((ws) => {
         setIsLoading(false);
@@ -114,58 +127,64 @@ export default function DisplayGrid() {
                             postProduction,
                             postCommandString,
                             namespaceString,
+                            awwwFPS,
                           );
                         }}
                       />
                     </ActionPanel.Section>
+                    {isWMSupported && (
+                      <>
+                        <ActionPanel.Section title="Split on Monitors">
+                          {monitorNames.includes(leftMonitorName) &&
+                            monitorNames.includes(rightMonitorName) && (
+                              <Action
+                                title={`Split wallpaper ${leftMonitorName} | ${rightMonitorName}`}
+                                icon={Icon.ArrowsExpand}
+                                onAction={() => {
+                                  omniCommand(
+                                    w.fullpath,
+                                    `${leftMonitorName}|${rightMonitorName}`,
+                                    awwwTransition,
+                                    awwwSteps,
+                                    awwwDuration,
+                                    preferences.toggleVicinaeSetting,
+                                    colorGen,
+                                    postProduction,
+                                    postCommandString,
+                                    namespaceString,
+                                    awwwFPS,
+                                  );
+                                }}
+                              />
+                            )}
+                        </ActionPanel.Section>
 
-                    <ActionPanel.Section title="Split on Monitors">
-                      {monitorNames.includes(leftMonitorName) &&
-                        monitorNames.includes(rightMonitorName) && (
-                          <Action
-                            title={`Split wallpaper ${leftMonitorName} | ${rightMonitorName}`}
-                            icon={Icon.ArrowsExpand}
-                            onAction={() => {
-                              omniCommand(
-                                w.fullpath,
-                                `${leftMonitorName}|${rightMonitorName}`,
-                                awwwTransition,
-                                awwwSteps,
-                                awwwDuration,
-                                preferences.toggleVicinaeSetting,
-                                colorGen,
-                                postProduction,
-                                postCommandString,
-                                namespaceString,
-                              );
-                            }}
-                          />
-                        )}
-                    </ActionPanel.Section>
-
-                    <ActionPanel.Section title="Set on Specific Monitor">
-                      {monitors.map((monitor) => (
-                        <Action
-                          key={monitor.id}
-                          title={`Set on ${monitor.name}`}
-                          icon={Icon.Monitor}
-                          onAction={() => {
-                            omniCommand(
-                              w.fullpath,
-                              monitor.name,
-                              awwwTransition,
-                              awwwSteps,
-                              awwwDuration,
-                              preferences.toggleVicinaeSetting,
-                              colorGen,
-                              postProduction,
-                              postCommandString,
-                              namespaceString,
-                            );
-                          }}
-                        />
-                      ))}
-                    </ActionPanel.Section>
+                        <ActionPanel.Section title="Set on Specific Monitor">
+                          {monitors.map((monitor) => (
+                            <Action
+                              key={monitor.id}
+                              title={`Set on ${monitor.name}`}
+                              icon={Icon.Monitor}
+                              onAction={() => {
+                                omniCommand(
+                                  w.fullpath,
+                                  monitor.name,
+                                  awwwTransition,
+                                  awwwSteps,
+                                  awwwDuration,
+                                  preferences.toggleVicinaeSetting,
+                                  colorGen,
+                                  postProduction,
+                                  postCommandString,
+                                  namespaceString,
+                                  awwwFPS,
+                                );
+                              }}
+                            />
+                          ))}
+                        </ActionPanel.Section>
+                      </>
+                    )}
                   </ActionPanel>
                 }
               />

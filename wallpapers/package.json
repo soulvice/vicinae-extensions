@@ -190,6 +190,14 @@
       "default": "90"
     },
     {
+      "name": "transitionFPS",
+      "title": "AWWW Transition FPS",
+      "description": "The target FPS to play the animation at",
+      "type": "textfield",
+      "required": false,
+      "default": "60"
+    },
+    {
       "name": "colorGenTool",
       "title": "Color Generator",
       "description": "Which color generation tool do you use?",
@@ -321,24 +329,6 @@
       "description": "Run a command or even a script after setting a new wallpaper",
       "required": false,
       "type": "textfield"
-    },
-    {
-      "name": "compositor",
-      "title": "Window Compositor",
-      "description": "Which Compositor are you using?",
-      "required": true,
-      "type": "dropdown",
-      "data": [
-        {
-          "title": "Niri",
-          "value": "niri"
-        },
-        {
-          "title": "Hyprland",
-          "value": "hyprland"
-        }
-      ],
-      "default": "niri"
     }
   ],
   "scripts": {
