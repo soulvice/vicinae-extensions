@@ -28,7 +28,7 @@ const parseImagesFromPath = async (path: string): Promise<string[]> => {
   }
 };
 
-const processImage = async (path: string): Promise<Image> => {
+export const processImage = async (path: string): Promise<Image> => {
   try {
     const buffer = await new Promise<Buffer>((resolve, reject) => {
       const stream = createReadStream(path, { highWaterMark: 32768 });
@@ -95,3 +95,19 @@ export const getImagesFromPath = async (path: string): Promise<Image[]> => {
     throw new Error("Failed to get images from provided path");
   }
 };
+
+
+class AWWW {
+  private command;
+
+  constructor() {
+    this.command = "";
+  }
+
+  img(image: string|Image) {
+    const self = this;
+    return self;
+  }
+
+  
+}

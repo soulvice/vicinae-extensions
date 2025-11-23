@@ -1,8 +1,9 @@
 import { exec, execSync } from "child_process";
 import * as path from "node:path";
+import { resolveAbsolutePath } from "./path";
 
 export async function runConvertSplit(imgpath: string) {
-  const outDir = ".cache/vicinae/awww-switcher";
+  const outDir = resolveAbsolutePath(".cache/vicinae/awww-switcher");
   console.log(`Running split of ${imgpath}`);
 
   const cmd = `mkdir -p "${outDir}" && magick "${imgpath}" -crop 50%x100% +repage "${outDir}/split_%d.jpg"`;
@@ -16,8 +17,8 @@ export async function runConvertSplit(imgpath: string) {
 export const runPostProduction = async (
   imgpath: string,
   option: string,
-): Promise<boolean> => {
-  const outDir = ".cache/vicinae/awww-switcher";
+): Promise<boolean|string> => {
+  const outDir = resolveAbsolutePath(".cache/vicinae/awww-switcher");
   let cmd: string;
   const postProdpath = path.join(outDir, `postprod.jpg`);
 
@@ -61,13 +62,13 @@ export const runPostProduction = async (
   }
 
   // Execute the command and check for errors
-  return await new Promise<boolean>((resolve) => {
+  return await new Promise<boolean|string>((resolve) => {
     exec(cmd, (error) => {
       if (error) {
         console.error(`Post processing failed: ${error.message}`);
         resolve(false);
       } else {
-        resolve(true);
+        resolve(postProdpath);
       }
     });
   });

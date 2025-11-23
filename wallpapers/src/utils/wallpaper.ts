@@ -1,7 +1,102 @@
 import { exec, execSync } from "child_process";
-import { showToast, Toast } from "@vicinae/api";
+import { showToast, Toast, WindowManagement as wm } from "@vicinae/api";
 import { runConvertSplit, runPostProduction } from "./imagemagik";
 import { callColorGen } from "./colorgen";
+import { WPTarget, WPFilter, WPAnimation } from "./types";
+import { Image, processImage } from "./image";
+import { awww } from "./awww";
+
+export async function applyFilter({
+  image,
+  filter,
+}:{
+  image: Image,
+  filter: WPFilter,
+}): Promise<Image> {
+  // Add Filter to image
+  // Return new image that has been filtered
+  const processedImage = await runPostProduction(image.fullpath, filter.name);
+  return await processImage(processedImage as string);
+}
+
+export async function applyImageTo(
+  image: Image, 
+  target: WPTarget,
+  animation: WPAnimation,
+): Promise<boolean> {
+
+  let mon: string = "ALL";
+  if ((target.mon instanceof String) && (target.mon !== "")) {
+    mon = target.mon as string;
+  }else if ((target.mon instanceof wm.Screen) && (target.mon !== undefined)) {
+    mon = (target as wm.Screen).name;
+  }
+
+  try {
+    //execSync(`awww query`+ 
+    //      ((target?.ns) ?` --namespace ${target.ns}` : ``), { stdio: "pipe" });
+    let awwwQry = awww.query();
+    if (target?.ns) awwwQry = awwwQry.namespace(target.ns.name);
+    await awwwQry.exec();
+
+    return await new Promise<boolean>(async (resolve) => {
+      //exec(
+      //  `awww img ${image.fullpath} -t ${animation.type} --transition-step ${animation.steps} --transition-duration ${animation.duration} --transition-fps ${animation.fps}` + 
+      //    ((target?.ns) ?` --namespace ${target.ns}` : ``)+ 
+      //    ((mon !== "ALL") ?` --outputs ${mon}` : ``),
+      //  (error: any) => {
+      //    if (error) {
+      //      resolve(false);
+      //    } else {
+      //      resolve(true);
+      //    }
+      //  },
+      //);
+      let query = awww.img(image.fullpath)
+        .transitionType(animation.type)
+        .transitionStep(animation.steps)
+        .transitionDuration(animation.duration)
+        .transitionFps(animation.fps);
+
+      if (target?.ns) query = query.namespace(target.ns.name);
+      if (target?.mon) query = query.outputs((target.mon instanceof String) ? target.mon : target.mon.name);
+
+      await query.exec().then((res) => {
+        resolve(true);
+      }).catch((err) => {
+        resolve(false);
+      })
+    });
+  } catch (error) {
+    return false;
+  }
+
+}
+
+export async function setImage({
+  image,
+  target,
+  filter,
+}: {
+  image: Image,
+  target: WPTarget,
+  filter?: WPFilter
+}):Promise<boolean> {
+  try {
+    let wpImage: Image = image;
+    if (filter) {
+      wpImage = await applyFilter({ image, filter});
+    };
+    await applyImageTo(  )
+
+  } catch (err: any) {
+    showToast({
+      style: Toast.Style.Failure,
+      title: "Failed to set Wallpaper",
+      message: err.message
+    });
+  };
+}
 
 export async function omniCommand(
   path: string,
