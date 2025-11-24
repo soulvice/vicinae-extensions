@@ -8,7 +8,7 @@
     "Developer Tools"
   ],
   "license": "MIT",
-  "author": "soulvice",
+  "author": "knoopx",
   "contributors": [],
   "pastContributors": [],
   "icon": "extension_icon.svg",
@@ -40,6 +40,21 @@
       "subtitle": "Search Home-Manager options",
       "description": "Search and browse Home-Manager options from Home-Manager",
       "mode": "view"
+    },
+    {
+      "name": "pull-requests",
+      "title": "NixOS Packages Pull Requests",
+      "subtitle": "Search NixOS Packages pull requests",
+      "description": "Search and browse NixOS Packages pull requests on GitHub",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "pr",
+          "placeholder": "Pull request number",
+          "type": "text",
+          "required": false
+        }
+      ]
     }
   ],
   "preferences": [
@@ -66,6 +81,13 @@
       "type": "textfield",
       "default": "https://home-manager-options.extranix.com/data/options-master.json",
       "required": true
+    },
+    {
+      "name": "githubToken",
+      "description": "GitHub token used for NixOS Packages Pull Requests search",
+      "type": "textfield",
+      "required": false,
+      "title": "GitHub Token"
     }
   ],
   "scripts": {
@@ -76,15 +98,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vicinae/api": "0.16.5"
+    "@vicinae/api": "0.16.8"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.4",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
     "eslint": "^9.39.1",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.4"
+    "typescript-eslint": "^8.0.0"
   }
 }

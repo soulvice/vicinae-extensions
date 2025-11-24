@@ -8,7 +8,8 @@ interface GenericCommandProps<T> {
   emptyIcon: Icon;
   emptyTitle: string;
   emptyDescription: string;
-  renderItems: (items: T[]) => JSX.Element[];
+  isShowingDetail?: boolean;
+  renderItems: (items: T[]) => React.JSX.Element[];
 }
 
 export default function GenericCommand<T>({
@@ -19,6 +20,7 @@ export default function GenericCommand<T>({
   emptyTitle,
   emptyDescription,
   renderItems,
+  isShowingDetail = true,
 }: GenericCommandProps<T>) {
   const { items, isLoading, searchText, handleSearchTextChange } = useSearch(searchFunction, errorMessage);
 
@@ -27,7 +29,7 @@ export default function GenericCommand<T>({
       isLoading={isLoading}
       onSearchTextChange={handleSearchTextChange}
       searchBarPlaceholder={placeholder}
-      isShowingDetail={true}
+      isShowingDetail={isShowingDetail}
     >
       {renderItems(items)}
 
