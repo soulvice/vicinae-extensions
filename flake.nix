@@ -46,7 +46,7 @@
           (lib.filterAttrs (_name: type: type == "directory"))
           (lib.mapAttrs (
             name: _type:
-            vicinae.packages.${system}.mkVicinaeExtension {
+            vicinae.lib.${system}.mkVicinaeExtension {
               pname = "vicinae-extension-${name}";
               version = "0";
               src = ./extensions/${name};
